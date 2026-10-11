@@ -1,4 +1,4 @@
-# 息刻（TimeGuard）
+# 息刻（Xike）
 
 Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、普通闹钟与连锁起床闹钟。
 
@@ -9,7 +9,7 @@ Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、
 | Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.2 |
 | Android / Kotlin | [android](android/README.md) | 1.2.7 |
 
-两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/TimeGuard/releases) 分发。
+两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/Xike/releases) 分发。
 
 Windows 使用 .NET 8 SDK，在 `desktop/` 执行 `dotnet build -c Release`；安装包需要 .NET 8 Desktop Runtime。Android 使用 JDK 17+、Android SDK 35，在 `android/` 执行 `gradlew.bat :app:assembleDebug :app:testDebugUnitTest`；Linux / macOS 使用 `./gradlew`。
 
