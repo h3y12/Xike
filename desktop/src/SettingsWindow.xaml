@@ -1,0 +1,188 @@
+<Window x:Class="TimeGuard.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TimeGuard"
+        Icon="/Assets/TimeGuard.ico"
+        Title="息刻 · 早睡健康分设置"
+        Width="{x:Static local:SettingsWindow.CardWidth}"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Microsoft YaHei UI"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal"
+        PreviewKeyDown="Win_PreviewKeyDown">
+
+    <Window.Resources>
+        <Style x:Key="Lbl" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#D9FFFFFF" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="Box" TargetType="TextBox">
+            <Setter Property="Width" Value="68" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="Background" Value="#22FFFFFF" />
+            <Setter Property="Foreground" Value="#F7FFFFFF" />
+            <Setter Property="BorderBrush" Value="#3DFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CaretBrush" Value="#FFFFFFFF" />
+            <Setter Property="SelectionBrush" Value="#805DCAA5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+
+        <!-- 文案输入用：占满右列，左对齐（Box 是居中且固定 68 宽，不适合放句子）。
+             右列净宽 260（456 − 左右各 22 padding − 左列 152），这里留 4px 余量 -->
+        <Style x:Key="BoxWide" TargetType="TextBox" BasedOn="{StaticResource Box}">
+            <Setter Property="Width" Value="256" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="8,0,8,0" />
+            <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+        </Style>
+
+        <Style x:Key="Btn" TargetType="Button">
+            <Setter Property="Foreground" Value="#F2FFFFFF" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                CornerRadius="8"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.78" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.62" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="14"
+            Background="#F216181C"
+            BorderBrush="#38FFFFFF"
+            BorderThickness="1"
+            Padding="22,18,22,18"
+            MouseLeftButtonDown="Card_MouseLeftButtonDown">
+        <StackPanel>
+
+            <TextBlock Text="设置" FontSize="16" FontWeight="SemiBold" Foreground="#F2FFFFFF" />
+            <TextBlock Text="改完点保存，立即生效并写入配置。" FontSize="11.5" Foreground="#80FFFFFF" Margin="0,4,0,16" />
+
+            <TextBlock Text="时间与扣分规则" FontSize="12.5" FontWeight="SemiBold" Foreground="#99FFFFFF" Margin="0,0,0,8" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="152" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="44" />
+                    <RowDefinition Height="44" />
+                    <RowDefinition Height="44" />
+                    <RowDefinition Height="44" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Lbl}" Text="窗口出现（开始记分）" />
+                <TextBox Grid.Row="0" Grid.Column="1" x:Name="TxtShow" Style="{StaticResource Box}"
+                         HorizontalAlignment="Left" TextChanged="Field_TextChanged" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource Lbl}" Text="开始扣分" />
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtDeduct" Style="{StaticResource Box}"
+                         HorizontalAlignment="Left" TextChanged="Field_TextChanged" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Lbl}" Text="扣分速率" />
+                <!-- 这一行控件总宽 = 13+6+56+52+12+56+13+6 = 214，右列可用 260，余 46px。
+                     上一版窗口宽 396，右列只有 200，溢出 14px → 最右边的「分」被裁掉了（用户实测）。
+                     改这里的宽度后，必须重新把这行加一遍，并跑一次快照看设置窗口那张卡片。 -->
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Lbl}" Text="每" Margin="0,0,6,0" />
+                    <TextBox x:Name="TxtMinutes" Style="{StaticResource Box}" Width="56" TextChanged="Field_TextChanged" />
+                    <TextBlock Style="{StaticResource Lbl}" Text="分钟　扣" Margin="6,0,6,0" />
+                    <TextBox x:Name="TxtPoints" Style="{StaticResource Box}" Width="56" TextChanged="Field_TextChanged" />
+                    <TextBlock x:Name="LblPointsUnit" Style="{StaticResource Lbl}" Text="分" Margin="6,0,0,0" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource Lbl}" Text="窗口隐藏" />
+                <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtHide" Style="{StaticResource Box}"
+                         HorizontalAlignment="Left" TextChanged="Field_TextChanged" />
+            </Grid>
+
+            <!-- ============ 状态文案（分数下面那一行字）============ -->
+            <TextBlock Text="状态文案" FontSize="12.5" FontWeight="SemiBold" Foreground="#99FFFFFF" Margin="0,16,0,0" />
+            <TextBlock Text="就是分数下面那一行字。留空 = 那个状态下不显示文字。"
+                       FontSize="11" Foreground="#80FFFFFF" Margin="0,3,0,6" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="152" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="38" />
+                    <RowDefinition Height="38" />
+                    <RowDefinition Height="38" />
+                    <RowDefinition Height="38" />
+                </Grid.RowDefinitions>
+
+                <!-- 标签文字由代码按 ScoreVisual.HighLine / MidLine 填，免得改了阈值忘了改标签 -->
+                <TextBlock x:Name="LblTagBefore" Grid.Row="0" Grid.Column="0" Style="{StaticResource Lbl}" Text="扣分前" />
+                <TextBox x:Name="TxtStatusBefore" Grid.Row="0" Grid.Column="1" Style="{StaticResource BoxWide}"
+                         TextChanged="Field_TextChanged" />
+
+                <TextBlock x:Name="LblTagHigh" Grid.Row="1" Grid.Column="0" Style="{StaticResource Lbl}" Text="高分" />
+                <TextBox x:Name="TxtStatusHigh" Grid.Row="1" Grid.Column="1" Style="{StaticResource BoxWide}"
+                         TextChanged="Field_TextChanged" />
+
+                <TextBlock x:Name="LblTagMid" Grid.Row="2" Grid.Column="0" Style="{StaticResource Lbl}" Text="中分" />
+                <TextBox x:Name="TxtStatusMid" Grid.Row="2" Grid.Column="1" Style="{StaticResource BoxWide}"
+                         TextChanged="Field_TextChanged" />
+
+                <TextBlock x:Name="LblTagLow" Grid.Row="3" Grid.Column="0" Style="{StaticResource Lbl}" Text="低分" />
+                <TextBox x:Name="TxtStatusLow" Grid.Row="3" Grid.Column="1" Style="{StaticResource BoxWide}"
+                         TextChanged="Field_TextChanged" />
+            </Grid>
+
+            <Border CornerRadius="8" Background="#1AFFFFFF" Padding="12,10,12,10" Margin="0,6,0,0">
+                <TextBlock x:Name="LblPreview" FontSize="11.5" Foreground="#A6FFFFFF" TextWrapping="Wrap" LineHeight="18" />
+            </Border>
+
+            <TextBlock x:Name="LblError" FontSize="11.5" Foreground="#FF8A80" TextWrapping="Wrap"
+                       Margin="0,10,0,0" Visibility="Collapsed" LineHeight="18" />
+
+            <Grid Margin="0,18,0,0">
+                <Button x:Name="BtnReset" Style="{StaticResource Btn}" Background="#22FFFFFF"
+                        HorizontalAlignment="Left" Content="恢复默认" Click="BtnReset_Click" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Btn}" Background="#22FFFFFF" Content="取消"
+                            Margin="0,0,10,0" Click="BtnCancel_Click" />
+                    <Button Style="{StaticResource Btn}" Background="#385DCAA5" Content="保存"
+                            Click="BtnSave_Click" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock FontSize="11" Foreground="#66FFFFFF" Margin="0,12,0,0" TextWrapping="Wrap" LineHeight="17"
+                       Text="时间填 24 小时制，如 20:30 / 06:30；也可以只填小时（20）。Esc 取消，回车保存。" />
+        </StackPanel>
+    </Border>
+</Window>

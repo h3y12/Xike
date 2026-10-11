@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ic_launcher_background">#315BCE</color>
+
+    <color name="bg_page">#F4F5F7</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="text_primary">#1B2028</color>
+    <color name="text_secondary">#6B7480</color>
+    <color name="accent">#2F6BFF</color>
+
+    <!-- 不生效的闹钟用这个色：比 text_secondary 再浅一档，
+         要能一眼看出"这个闹钟是关着的"，但又不能浅到读不出时间。 -->
+    <color name="alarm_off_text">#B4BAC3</color>
+
+    <color name="overlay_card">#CC1B2028</color>
+    <color name="overlay_stroke">#33FFFFFF</color>
+    <color name="overlay_text">#F2F4F7</color>
+    <color name="overlay_text_dim">#9AA4B2</color>
+</resources>

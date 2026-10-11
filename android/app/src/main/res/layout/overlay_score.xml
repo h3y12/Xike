@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  悬浮窗本体。上下两块，与桌面版一一对应：
+   ① 早睡健康分（大数字 + 两行状态文案）
+   ② 手动倒计时（大数字 + 说明）
+
+  哪一块显示由服务按「白天/夜里 + 计时状态」决定，见 OverlayService.render。
+  倒计时那块刻意做成竖排：它的字比分数块长，横排会把整窗撑到 230dp 宽、挡住屏幕内容。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/overlayRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minWidth="104dp"
+    android:orientation="vertical"
+    android:background="@drawable/bg_overlay_card"
+    android:paddingStart="11dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- ① 早睡健康分 -->
+    <LinearLayout
+        android:id="@+id/scoreBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="38dp"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/overlay_text"
+            android:textSize="27sp"
+            tools:text="100" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="9dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="88dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:lineSpacingExtra="1dp"
+                android:textColor="@color/overlay_text"
+                android:textSize="11sp"
+                tools:text="快去睡吧。" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 两块之间的细线：只有两块都在时服务才让它可见 -->
+    <View
+        android:id="@+id/cdDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginBottom="7dp"
+        android:background="#2EFFFFFF" />
+
+    <!-- ② 手动倒计时 -->
+    <LinearLayout
+        android:id="@+id/cdBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvCdTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/overlay_text"
+            android:textSize="21sp"
+            tools:text="00:14:59" />
+
+        <TextView
+            android:id="@+id/tvCdLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:maxWidth="118dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:lineSpacingExtra="1dp"
+            android:textColor="@color/overlay_text_dim"
+            android:textSize="10sp"
+            tools:text="到 23:30 为止&#10;不可暂停" />
+    </LinearLayout>
+</LinearLayout>

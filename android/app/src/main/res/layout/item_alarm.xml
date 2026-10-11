@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  一个闹钟方块。刻意做得紧凑：主角只有「时间」和「开关」，
+  中间那行小字只在闹钟有名字或会重复时才出现（否则留空，方块就是纯时间 + 开关）。
+
+  生效/不生效的区分走字色：生效 = 近黑（@color/text_primary），不生效 = 浅灰（@color/alarm_off_text）。
+  与桌面版挂件里那条判据是同一条 —— 亮/暗对调只是因为底色不同（那边是深色底）。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/alarmItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="6dp"
+    android:background="@drawable/bg_alarm_item"
+    android:gravity="center_vertical"
+    android:minHeight="46dp"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingTop="5dp"
+    android:paddingEnd="6dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:id="@+id/tvAlarmTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="@color/text_primary"
+        android:textSize="21sp"
+        tools:text="06:30" />
+
+    <TextView
+        android:id="@+id/tvAlarmSub"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        tools:text="起床 · 每天" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swAlarmItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

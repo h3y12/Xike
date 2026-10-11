@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  闹钟方块。做成很淡的浅灰底 + 极细描边，不用纯白：
+  白底和卡片背景同色，方块边界就看不出来了，"一个闹钟一个方块"的视觉分组会散掉。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#F2F4F7" />
+    <stroke
+        android:width="1dp"
+        android:color="#E2E6EC" />
+    <corners android:radius="10dp" />
+</shape>

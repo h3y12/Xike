@@ -1,0 +1,121 @@
+<resources>
+    <string name="app_name">息刻</string>
+    <string name="app_subtitle">熬夜健康分 · 手动倒计时 · 悬浮窗</string>
+
+    <string name="card_preview">早睡健康分</string>
+    <string name="card_permission">还需开启</string>
+    <string name="card_schedule">时段</string>
+    <string name="card_rate">扣分速率</string>
+    <string name="card_text">状态文案</string>
+    <string name="card_look">外观与交互</string>
+    <string name="card_countdown">手动倒计时</string>
+
+    <string name="label_show_at">悬浮窗出现</string>
+    <string name="label_deduct_at">开始扣分</string>
+    <string name="label_hide_at">悬浮窗隐藏</string>
+
+    <string name="label_per_minutes">每</string>
+    <string name="label_minutes_unit">分钟</string>
+    <string name="label_deduct">扣</string>
+    <string name="label_points_unit">分</string>
+
+    <string name="label_status_before">还没开始扣分时</string>
+    <string name="label_status_high">高分（≥80）</string>
+    <string name="label_status_mid">中分（60–79）</string>
+    <string name="label_status_low">低分（&lt;60）</string>
+
+    <string name="label_cd_hint">填 23:00 走到那个钟点；填 45m 或 2h 计一段时间。与健康分无关，纯粹是个计时器。</string>
+    <string name="hint_cd_input">23:00 或 45m</string>
+
+    <string name="label_opacity">透明度</string>
+    <string name="label_through">点击穿透</string>
+    <string name="label_through_hint">开启后触摸落到下层应用，悬浮窗自己收不到点击；要改回来就在这个界面上关掉。</string>
+    <string name="label_show_score">在悬浮窗上显示健康分</string>
+    <string name="label_show_countdown">在悬浮窗上显示手动倒计时</string>
+    <string name="label_notify_toggle">通知栏里加一个「切换穿透」按钮</string>
+    <string name="label_notify_toggle_hint">默认不加，保持通知清爽。开启后可以从通知栏切穿透，适合不常进 App 的人。</string>
+
+    <string name="btn_start_overlay">开启悬浮窗</string>
+    <string name="btn_stop_overlay">关闭悬浮窗</string>
+    <string name="btn_grant_overlay">开启悬浮窗</string>
+    <string name="btn_grant_notification">开启通知</string>
+
+    <string name="btn_cd_start">开始</string>
+    <string name="btn_cd_restart">重来</string>
+    <string name="btn_cd_again">再来</string>
+    <string name="btn_cd_pause">暂停</string>
+    <string name="btn_cd_resume">继续</string>
+    <string name="btn_cd_reset">重置</string>
+
+    <string name="perm_overlay_ok">已授权</string>
+    <string name="perm_overlay_missing">悬浮窗未开启：允许息刻显示在其他应用上层。</string>
+    <string name="perm_notification_ok">已授权</string>
+    <string name="perm_notification_missing">通知未开启：请允许息刻通知，并开启「闹钟」和「健康分悬浮窗」通知类别。</string>
+
+    <string name="toast_rules_invalid">设置有问题：</string>
+    <string name="toast_overlay_permission_needed">请先授予「显示在其他应用上层」权限</string>
+    <string name="toast_cd_need_overlay">倒计时需要「显示在其他应用上层」权限才能画到屏幕上，先去授权</string>
+
+    <string name="card_alarm">闹钟</string>
+
+    <!-- ============ 闹钟 ============ -->
+    <string name="alarm_hint">每个闹钟一个方块，只显示时间和开关。亮色 = 生效，浅灰 = 不生效。列表按时间排（以凌晨四点为界，所以 01:00 排在 23:00 后面）。</string>
+    <string name="alarm_empty">还没有闹钟。</string>
+    <string name="alarm_none_imminent">半小时内没有闹钟。</string>
+    <string name="btn_alarm_add">加一个闹钟</string>
+    <string name="btn_alarm_chain">起床闹钟（连锁）</string>
+    <string name="label_alarm_ring_seconds">响铃持续</string>
+    <string name="unit_seconds">秒</string>
+    <string name="label_alarm_vibrate">响铃时震动</string>
+    <string name="label_alarm_note">闹钟独立运行，关闭悬浮窗不会取消。响铃时可在通知或这里点「停止响铃 / 稍后提醒」。一次性闹钟在触发时删除；选择保留时则自动关闭。</string>
+
+    <string name="alarm_dialog_title">闹钟</string>
+    <string name="alarm_dialog_chain_title">连锁起床闹钟</string>
+    <string name="alarm_label_time">时间</string>
+    <string name="alarm_label_name">名称（可不填）</string>
+    <string name="alarm_label_repeat">重复</string>
+    <string name="alarm_repeat_once">仅一次</string>
+    <string name="alarm_repeat_daily">每天</string>
+    <string name="alarm_repeat_weekly">每周</string>
+    <string name="alarm_label_days">星期</string>
+    <string name="alarm_delete_after_ring">响过之后自动删除</string>
+    <string name="alarm_label_start">起始时间</string>
+    <string name="alarm_label_interval">间隔</string>
+    <string name="alarm_label_count">次数</string>
+    <string name="alarm_weekdays_only">只在工作日（周一到周五）</string>
+    <string name="btn_ok">确定</string>
+    <string name="btn_cancel">取消</string>
+    <string name="btn_delete">删除</string>
+    <string name="btn_alarm_dismiss">停止响铃</string>
+    <string name="btn_alarm_snooze">稍后提醒</string>
+
+    <string name="day_mon">一</string>
+    <string name="day_tue">二</string>
+    <string name="day_wed">三</string>
+    <string name="day_thu">四</string>
+    <string name="day_fri">五</string>
+    <string name="day_sat">六</string>
+    <string name="day_sun">日</string>
+    <string name="unit_times">次</string>
+
+    <string name="alarm_edit_title">改这个闹钟</string>
+    <string name="alarm_chain_label">起床</string>
+    <string name="alarm_chain_preview_bad">间隔 1–120 分钟、次数 1–12 次</string>
+    <string name="alarm_chain_note">连锁起床闹钟：关掉一个，下一个仍会按它自己的时刻响；在设置页关掉整串时一起关。</string>
+    <string name="alarm_chain_preview_pattern">将生成 %1$s 共 %2$d 个闹钟</string>
+    <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
+    <string name="alarm_saved">已保存</string>
+    <string name="alarm_deleted">已删除</string>
+    <string name="alarm_chain_added">已生成 %1$d 个起床闹钟</string>
+    <string name="alarm_weekly_need_day">「每周」至少要勾一天。</string>
+    <string name="alarm_none_imminent_hint">半小时内要响的会写进通知栏，悬浮窗上也会显示。</string>
+    <string name="alarm_next_at">下一个 %1$s（%2$s）</string>
+    <string name="perm_alarm_missing">闹钟和提醒未开启：请允许息刻设置准时闹钟，开启后自动安排已保存的闹钟。</string>
+    <string name="btn_grant_alarm">开启闹钟和提醒</string>
+    <string name="perm_fullscreen_missing">锁屏响铃页面未允许：开启后，到点可在锁屏直接停止或稍后提醒。不开启仍可通过通知操作。</string>
+    <string name="btn_grant_fullscreen">允许锁屏响铃页面</string>
+    <string name="perm_battery_missing">后台运行仍受电池优化限制，可能影响夜间提醒。请在电池设置中将息刻设为不受限制。</string>
+    <string name="btn_grant_battery">打开电池优化设置</string>
+    <string name="btn_background_help">iQOO / vivo 后台提醒设置</string>
+    <string name="background_help">请在系统设置中为息刻开启：\n\n1. 应用与权限 → 权限管理 → 自启动。\n2. 电池 → 后台耗电管理（或后台高耗电）→ 允许后台运行。\n\n菜单名称会随 OriginOS 版本变化，可搜索“自启动”和“后台耗电”。这些厂商开关无法由应用准确检测，所以这里不会显示“已授权”。\n\n设置后，关闭悬浮窗、退出息刻并锁屏，设一个两分钟后的闹钟验证。系统强行停止或清除应用数据会取消闹钟。</string>
+</resources>

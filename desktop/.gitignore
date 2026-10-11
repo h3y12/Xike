@@ -1,0 +1,38 @@
+# ---- 构建产物 ----
+bin/
+obj/
+
+# ---- 发布产物：用 GitHub Releases 分发，不进仓库（想直接提供下载可自行放开）----
+dist/*.exe
+dist/*.pdb
+dist/*.json
+
+# ---- 本地验证 / 诊断产物：可能含本机屏幕截图与个人环境信息，绝不公开 ----
+_verify/
+
+# ---- 自检输出 ----
+selftest.txt
+uicheck.txt
+uitest.log
+snapshot.png
+trayicon.png
+trayicon.txt
+
+# ---- 用户配置（正常也不会出现在仓库里，防手滑）----
+config.json
+selftest-config.json
+
+# ---- IDE / 编辑器 ----
+.vs/
+.idea/
+*.user
+*.suo
+*.swp
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- 系统 ----
+Thumbs.db
+desktop.ini

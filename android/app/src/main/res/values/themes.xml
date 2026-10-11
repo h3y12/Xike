@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.TimeGuard" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- White settings cards require light widgets and dialogs in every system mode. -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurface">@color/card_bg</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryVariant">@color/accent</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/bg_page</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:windowBackground">@color/bg_page</item>
+    </style>
+</resources>
