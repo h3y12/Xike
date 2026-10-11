@@ -5,7 +5,7 @@
 *.kts text eol=lf
 *.md text eol=lf
 *.ps1 text eol=crlf
-*.cmd -text
+*.cmd -text whitespace=cr-at-eol
 *.bat text eol=crlf
 gradlew text eol=lf
 *.jar binary
