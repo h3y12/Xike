@@ -115,11 +115,11 @@ class AlarmCard(
             ib.swAlarmItem.isChecked = a.enabled
             ib.swAlarmItem.setOnCheckedChangeListener { _, checked ->
                 if (suppress) return@setOnCheckedChangeListener
-                // 原地改色，不重建列表：重建会把开关动画打断，手感很糟
-                book.add(a.copy(enabled = checked))
-                colorize(ib.tvAlarmTime, ib.tvAlarmSub, checked)
+                // 设置页的连锁开关作用于整组，所有成员的开关和颜色一起刷新。
+                book = cfg.loadAlarms()
+                book.setEnabledFromSettings(a.id, checked)
                 persist()
-                sig = signature()
+                render()
             }
 
             // 点方块本体 = 改这个闹钟（时间、名字、重复）；要删在弹窗里删
@@ -134,7 +134,7 @@ class AlarmCard(
         val parts = mutableListOf<String>()
         if (a.label.isNotBlank()) parts += a.label
         parts += a.repeatText
-        if (a.chainId.isNotEmpty()) parts += "连锁 ${a.chainIndex}"
+        if (a.chainId.isNotEmpty()) parts += "连锁 ${a.chainIndex} · 整组开关"
         return parts.joinToString(" · ")
     }
 
@@ -244,7 +244,7 @@ class AlarmCard(
             .setView(db.root)
             .setPositiveButton(R.string.btn_ok, null)     // 校验失败要能拦住关闭，所以稍后手动挂
             .setNegativeButton(R.string.btn_cancel, null)
-            .apply { if (existing != null) setNeutralButton(R.string.btn_delete, null) }
+            .apply { if (existing != null) setNeutralButton(if (existing.chainId.isEmpty()) R.string.btn_delete else R.string.btn_delete_chain, null) }
             .create()
 
         dialog.setOnShowListener {
@@ -297,11 +297,12 @@ class AlarmCard(
 
             if (existing != null) {
                 dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
-                    book.remove(existing.id)
+                    book = cfg.loadAlarms()
+                    val removed = book.removeFromSettings(existing)
                     persist()
                     sig = ""
                     render()
-                    activity.toast(activity.getString(R.string.alarm_deleted))
+                    activity.toast(if (existing.chainId.isEmpty()) activity.getString(R.string.alarm_deleted) else activity.getString(R.string.alarm_chain_deleted, removed))
                     dialog.dismiss()
                 }
             }

@@ -106,6 +106,8 @@
     <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
     <string name="alarm_saved">已保存</string>
     <string name="alarm_deleted">已删除</string>
+    <string name="btn_delete_chain">删除整组</string>
+    <string name="alarm_chain_deleted">已删除整组 %1$d 个闹钟</string>
     <string name="alarm_chain_added">已生成 %1$d 个起床闹钟</string>
     <string name="alarm_weekly_need_day">「每周」至少要勾一天。</string>
     <string name="alarm_none_imminent_hint">半小时内要响的会写进通知栏，悬浮窗上也会显示。</string>

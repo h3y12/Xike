@@ -541,6 +541,20 @@ class AlarmBook {
         }
     }
 
+    /** 设置页的开关：普通闹钟改单个，连锁闹钟改整组；响铃消费不走这里。 */
+    fun setEnabledFromSettings(id: String, enabled: Boolean) {
+        val current = find(id) ?: return
+        if (current.chainId.isEmpty()) add(current.copy(enabled = enabled))
+        else setChainEnabled(current.chainId, enabled)
+    }
+
+    /** 设置页删除：即使编辑时当前成员已被消费，仍可删除其余同组成员。 */
+    fun removeFromSettings(alarm: Alarm): Int {
+        val ids = if (alarm.chainId.isEmpty()) listOf(alarm.id)
+            else items.filter { it.chainId == alarm.chainId }.map { it.id }
+        return ids.count { remove(it) }
+    }
+
     /** 已生成的连锁串（按 chainId 分组）。 */
     fun chains(): List<Pair<String, List<Alarm>>> =
         items.filter { it.chainId.isNotEmpty() }
