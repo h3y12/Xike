@@ -19,3 +19,5 @@
 模拟器截图和自动测试不能替代以上真机验收。仓库仍保持私有，安装包继续标记为预发布。
 
 本地验证：Windows 264 项自检与 6 项真实闹钟窗口检查通过，编译 0 警告 / 0 错误；Android 159 项测试、debug / signed release 构建与 lintRelease 通过。Git 历史常见密钥模式检查无命中；这不等于完整安全审计。
+
+干净 Linux 环境首次检查暴露了 JDK 17 + Robolectric 4.17 在旧 SDK 音频代理初始化时的反射兼容异常（BluetoothDevice.BluetoothAddress 缺失）。测试任务固定 JDK 21，CI 与文档同步明确运行环境；应用字节码编译目标保持 Java 17。

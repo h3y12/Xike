@@ -4,7 +4,7 @@
 
 ## 从源码构建
 
-安装 JDK 17 或更高版本、Android SDK（平台 35、Build Tools 34.0.0），设置 `JAVA_HOME` 和 `ANDROID_HOME`，或通过 Android Studio 配置本机 `local.properties`。无需全局安装 Gradle；仓库自带 Gradle 8.9 Wrapper，并校验发行包 SHA-256。
+推荐安装 JDK 21（Robolectric 服务测试固定使用 JDK 21；应用编译目标仍是 Java 17）、Android SDK（平台 35、Build Tools 34.0.0），设置 `JAVA_HOME` 和 `ANDROID_HOME`，或通过 Android Studio 配置本机 `local.properties`。无需全局安装 Gradle；仓库自带 Gradle 8.9 Wrapper，并校验发行包 SHA-256。
 
 ```powershell
 .\gradlew.bat :app:assembleDebug :app:testDebugUnitTest

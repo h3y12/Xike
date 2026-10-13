@@ -1,4 +1,6 @@
 import java.util.Properties
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 
 plugins {
     id("com.android.application")
@@ -88,6 +90,10 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {
+            // JDK 17 eagerly initializes old-SDK proxy types used by Robolectric 4.17.
+            it.javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            })
             // Keep Robolectric's cache and download lock inside the project's build directory.
             val testHome = layout.buildDirectory.dir("test-home").get().asFile
             it.doFirst { testHome.mkdirs() }
