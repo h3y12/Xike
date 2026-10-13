@@ -13,7 +13,7 @@
     <RootNamespace>TimeGuard</RootNamespace>
     <Product>息刻</Product>
     <AssemblyTitle>息刻 桌面计时挂件</AssemblyTitle>
-    <Version>2.0.2</Version>
+    <Version>2.0.3</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- 程序图标：由 scripts/make_icon.py 按托盘图标的画法生成，托盘/窗口/快捷方式共用这一份 -->
     <ApplicationIcon>Assets\TimeGuard.ico</ApplicationIcon>

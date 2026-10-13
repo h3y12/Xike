@@ -101,10 +101,11 @@
     <string name="alarm_edit_title">改这个闹钟</string>
     <string name="alarm_chain_label">起床</string>
     <string name="alarm_chain_preview_bad">间隔 1–120 分钟、次数 1–12 次</string>
-    <string name="alarm_chain_note">连锁起床闹钟：关掉一个，下一个仍会按它自己的时刻响；在设置页关掉整串时一起关。</string>
+    <string name="alarm_chain_note">响铃时停止当前闹钟，后续仍按各自时间提醒；App 列表中的开关与删除作用于整组。</string>
     <string name="alarm_chain_preview_pattern">将生成 %1$s 共 %2$d 个闹钟</string>
     <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
     <string name="alarm_saved">已保存</string>
+    <string name="alarm_editor_expired">该闹钟已响过或被删除，请重新选择</string>
     <string name="alarm_deleted">已删除</string>
     <string name="btn_delete_chain">删除整组</string>
     <string name="alarm_chain_deleted">已删除整组 %1$d 个闹钟</string>

@@ -105,6 +105,57 @@ class AlarmChainSettingsTest {
             assertTrue(cfg.loadAlarms().all.single().chainId.isEmpty())
         } finally { controller.pause().stop().destroy() }
     }
+    @Test fun savingAnEditorCannotResurrectAConsumedAlarmOrLoseBackgroundAdditions() {
+        val original = AlarmBook()
+        val once = original.addManual(LocalTime.of(7, 0), "一次性", AlarmRepeat.ONCE, emptySet(), true)
+        cfg.saveAlarms(original)
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            controller.get().findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(0).performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            original.consumeOccurrence(once)
+            original.addManual(LocalTime.NOON, "后台新增", AlarmRepeat.DAILY, emptySet(), false)
+            cfg.saveAlarms(original)
+            (ShadowDialog.getLatestDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            assertNull(cfg.loadAlarms().find(once.id))
+            assertEquals("后台新增", cfg.loadAlarms().all.single().label)
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun savingAnEditorPreservesRuntimeDisableAndNewAlarms() {
+        val original = book()
+        val first = original.all.first()
+        cfg.saveAlarms(original)
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            controller.get().findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(0).performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            (ShadowDialog.getLatestDialog() as AlertDialog).findViewById<android.widget.EditText>(R.id.etAlarmLabel)!!.setText("修改后的名称")
+            original.setChainEnabled(first.chainId, false)
+            original.addManual(LocalTime.of(13, 0), "稍后新增", AlarmRepeat.ONCE, emptySet(), true)
+            cfg.saveAlarms(original)
+            (ShadowDialog.getLatestDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            val saved = cfg.loadAlarms()
+            assertEquals(5, saved.size)
+            assertEquals("修改后的名称", saved.find(first.id)!!.label)
+            assertTrue(saved.all.filter { it.chainId == first.chainId }.all { !it.enabled })
+            assertTrue(saved.all.any { it.label == "稍后新增" })
+        } finally { controller.pause().stop().destroy() }
+    }
+    @Test fun addingAnAlarmPreservesRecordsCreatedWhileTheDialogWasOpen() {
+        val original = book()
+        cfg.saveAlarms(original)
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            controller.get().findViewById<android.view.View>(R.id.btnAlarmAdd).performClick()
+            shadowOf(Looper.getMainLooper()).idle()
+            original.addManual(LocalTime.of(13, 0), "后台新增", AlarmRepeat.DAILY, emptySet(), false)
+            cfg.saveAlarms(original)
+            (ShadowDialog.getLatestDialog() as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            assertEquals(6, cfg.loadAlarms().size)
+            assertTrue(cfg.loadAlarms().all.any { it.label == "后台新增" })
+        } finally { controller.pause().stop().destroy() }
+    }
+
     @Test fun stoppingTheRingingMemberKeepsLaterMembersEnabledAndScheduled() {
         val at = LocalDateTime.now().withSecond(0).withNano(0)
         val initial = AlarmBook()

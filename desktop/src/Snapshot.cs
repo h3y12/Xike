@@ -197,8 +197,12 @@ public static class Snapshot
             }
         };
 
+        string? outputDirectory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(outputDirectory)) Directory.CreateDirectory(outputDirectory);
         var cards = new List<Card>();
         foreach (Sample s in samples) cards.Add(BuildCard(s));
+
+        SaveBitmap(cards[3].Image, Path.Combine(outputDirectory ?? ".", "desktop-widget.png"));
 
         double maxH = 0;
         foreach (Card c in cards) maxH = Math.Max(maxH, c.Height);
@@ -219,6 +223,14 @@ public static class Snapshot
             BuildRingPanel()
         };
 
+        string[] panelNames = { "desktop-settings.png", "desktop-alarms.png", "desktop-chain.png", "desktop-ringing.png" };
+        for (int i = 0; i < panels.Count; i++) {
+            Panel p = panels[i];
+            var bitmap = new RenderTargetBitmap((int)p.PixelWidth, (int)p.PixelHeight,
+                96 * RenderScale, 96 * RenderScale, PixelFormats.Pbgra32);
+            bitmap.Render(p.Root);
+            SaveBitmap(bitmap, Path.Combine(outputDirectory ?? ".", panelNames[i]));
+        }
         // 各面板宽度不一样（456 / 476 / 320），不能按固定列数排 —— 按行贪心摆，放不下就换行
         const double PanelGap = 22;
         int gridW = Cols * cw + (Cols + 1) * Pad;
@@ -267,7 +279,7 @@ public static class Snapshot
             var bodyFace = new Typeface(new FontFamily("Microsoft YaHei UI"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
 
             var title = new FormattedText(
-                "TimeGuard · 各阶段界面（分数块 183×143 = 原 236×184 的 60%；下方细线分隔，倒计时在细线之下）",
+                "息刻 Xike · 桌面挂件、计时与闹钟",
                 CultureInfo.CurrentCulture, FlowDirection.LeftToRight, titleFace, 22,
                 new SolidColorBrush(Color.FromRgb(0xF0, 0xF0, 0xF0)), 96);
             dc.DrawText(title, new Point(Pad, 18));
@@ -326,6 +338,13 @@ public static class Snapshot
         encoder.Save(fs);
     }
 
+    private static void SaveBitmap(BitmapSource bitmap, string path)
+    {
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using FileStream file = File.Create(path);
+        encoder.Save(file);
+    }
     /// <summary>按输入文本起一次倒计时（解析走真实代码路径）。</summary>
     private static void StartAt(Countdown cd, string input, DateTime now)
     {

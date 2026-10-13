@@ -1,0 +1,77 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  desktop:
+    name: Windows build and regression checks
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: desktop
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet build -c Release
+      - name: Check rules and real alarm editor
+        run: |
+          New-Item -ItemType Directory -Force -Path _verify/ci | Out-Null
+          foreach ($mode in @('selftest', 'alarmcheck')) {
+            $report = Join-Path $PWD "_verify/ci/$mode.txt"
+            $process = Start-Process -FilePath "$PWD/bin/Release/net8.0-windows/TimeGuard.exe" -ArgumentList "--$mode", $report -WindowStyle Hidden -PassThru -Wait
+            if ($process.ExitCode -ne 0) { throw "$mode failed with exit code $($process.ExitCode)" }
+            if (-not (Test-Path $report)) { throw "$mode report missing" }
+            if (Select-String -LiteralPath $report -Pattern '^FAIL' -Quiet) { throw "$mode has failing assertions" }
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: windows-test-reports
+          path: desktop/_verify/ci/*.txt
+          retention-days: 7
+  android:
+    name: Android debug build, tests and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle.kts
+            android/app/build.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+      - name: Install SDK
+        run: sdkmanager 'platforms;android-35' 'build-tools;34.0.0'
+      - name: Build without private signing keys
+        run: ./gradlew --no-daemon --no-parallel --console=plain :app:assembleDebug :app:testDebugUnitTest :app:lintRelease
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: android-test-and-lint-reports
+          path: |
+            android/app/build/reports/tests/
+            android/app/build/reports/lint-results-release.*
+          retention-days: 7

@@ -745,7 +745,9 @@ public partial class MainWindow : Window
             catch { /* 顶不动也不能崩 */ }
         }
 
-        ShowRingWindow(_ringer.Current);
+        // Show() can synchronously run Loaded/Refresh and expire the current ring.
+        if (_ringer.Current is RingingState current) ShowRingWindow(current);
+        else _sound.Stop();
     }
 
     /// <summary>把闹钟状态刷到挂件里的闹钟块。</summary>
@@ -1527,12 +1529,13 @@ public partial class MainWindow : Window
             var w = new RingWindow();
             w.DismissRequested += (_, _) => DismissCurrentRing(DateTime.Now);
             w.SnoozeRequested += (_, _) => SnoozeCurrentRing(DateTime.Now);
-            w.Closed += (_, _) => _ringWindow = null;
+            w.Closed += (_, _) => { if (ReferenceEquals(_ringWindow, w)) _ringWindow = null; };
             _ringWindow = w;
             w.Show();
         }
 
-        _ringWindow.Update(state, _cfg.AlarmSnoozeMinutes);
+        if (_ringWindow is not RingWindow activeWindow || !activeWindow.IsLoaded) return;
+        activeWindow.Update(state, _cfg.AlarmSnoozeMinutes);
         try
         {
             if (_cfg.AlarmBringToFront)

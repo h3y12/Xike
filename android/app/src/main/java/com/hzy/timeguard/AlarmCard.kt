@@ -132,9 +132,9 @@ class AlarmCard(
     /** 方块里那行小字：名字与重复方式。**只显示时间和开关**是主，这行是补充。 */
     private fun subtitle(a: Alarm): String {
         val parts = mutableListOf<String>()
+        if (a.chainId.isNotEmpty()) parts += "连锁 ${a.chainIndex} · 整组开关"
         if (a.label.isNotBlank()) parts += a.label
         parts += a.repeatText
-        if (a.chainId.isNotEmpty()) parts += "连锁 ${a.chainIndex} · 整组开关"
         return parts.joinToString(" · ")
     }
 
@@ -266,6 +266,7 @@ class AlarmCard(
                 }
 
                 val label = db.etAlarmLabel.text.toString().trim()
+                book = cfg.loadAlarms()
 
                 if (existing == null) {
                     book.addManual(
@@ -276,16 +277,20 @@ class AlarmCard(
                         deleteAfterRing = db.swDeleteAfterRing.isChecked,
                     )
                 } else {
-                    book.add(
-                        existing.copy(
-                            label = label,
-                            timeOfDay = picked,
-                            repeat = rep,
-                            days = days,
-                            deleteAfterRing = db.swDeleteAfterRing.isChecked,
-                        ),
-                    )
-                    book.sort()
+                    val saved = book.mergeEditorChanges(existing, existing.copy(
+                        label = label,
+                        timeOfDay = picked,
+                        repeat = rep,
+                        days = days,
+                        deleteAfterRing = db.swDeleteAfterRing.isChecked,
+                    ))
+                    if (!saved) {
+                        sig = ""
+                        render()
+                        activity.toast(activity.getString(R.string.alarm_editor_expired))
+                        dialog.dismiss()
+                        return@setOnClickListener
+                    }
                 }
 
                 persist()

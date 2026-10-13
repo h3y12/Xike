@@ -30,3 +30,6 @@ config.json.*
 selftest-config.json*
 Thumbs.db
 desktop.ini
+
+docs/images/*.layout.txt
+docs/images/*.real.png

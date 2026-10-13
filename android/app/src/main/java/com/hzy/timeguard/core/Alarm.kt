@@ -555,6 +555,22 @@ class AlarmBook {
         return ids.count { remove(it) }
     }
 
+    /** 合并设置编辑：保留后台开关和连锁属性，不复活已消费或删除的成员。 */
+    fun mergeEditorChanges(original: Alarm, edited: Alarm): Boolean {
+        val live = find(original.id) ?: return false
+        fun <T> merge(before: T, draft: T, current: T): T =
+            if (draft != before && current == before) draft else current
+        add(live.copy(
+            label = merge(original.label, edited.label, live.label),
+            timeOfDay = merge(original.timeOfDay, edited.timeOfDay, live.timeOfDay),
+            repeat = merge(original.repeat, edited.repeat, live.repeat),
+            days = merge(original.days, edited.days, live.days),
+            deleteAfterRing = merge(original.deleteAfterRing, edited.deleteAfterRing, live.deleteAfterRing),
+        ))
+        sort()
+        return true
+    }
+
     /** 已生成的连锁串（按 chainId 分组）。 */
     fun chains(): List<Pair<String, List<Alarm>>> =
         items.filter { it.chainId.isNotEmpty() }
