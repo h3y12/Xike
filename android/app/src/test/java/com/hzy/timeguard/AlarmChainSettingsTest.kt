@@ -156,6 +156,42 @@ class AlarmChainSettingsTest {
         } finally { controller.pause().stop().destroy() }
     }
 
+    @Test fun editingAnyMemberMovesTheWholeChainAndReschedulesIt() {
+        for (index in 0..2) {
+            cfg.saveAlarms(book())
+            val before = cfg.loadAlarms().all.filter { it.chainId == "group-a" }.sortedBy { it.chainIndex }
+            val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+            try {
+                controller.get().findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(index).performClick()
+                shadowOf(Looper.getMainLooper()).idle()
+                val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+                dialog.findViewById<android.view.View>(R.id.btnAlarmTime)!!.performClick()
+                val picker = ShadowDialog.getLatestDialog() as android.app.TimePickerDialog
+                picker.updateTime(7, index * 5)
+                picker.getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick()
+                dialog.findViewById<android.widget.EditText>(R.id.etAlarmLabel)!!.setText("新的起床时间")
+                dialog.findViewById<android.widget.RadioButton>(R.id.rbAlarmWeekly)!!.isChecked = true
+                dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnDay1)!!.isChecked = true
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                val saved = cfg.loadAlarms()
+                val members = saved.all.filter { it.chainId == "group-a" }.sortedBy { it.chainIndex }
+                assertEquals(listOf("07:00", "07:05", "07:10"), members.map { it.timeText })
+                assertEquals(before.map { it.id }, members.map { it.id })
+                assertTrue(members.all { it.label == "新的起床时间" && it.repeat == AlarmRepeat.WEEKLY && it.days == setOf(java.time.DayOfWeek.MONDAY) })
+                assertEquals("12:00", saved.all.single { it.chainId.isEmpty() }.timeText)
+                // 系统只注册下一次唤醒；推进到每个成员之前，验证后续调度也使用新时间。
+                for (member in members) {
+                    val before = java.time.LocalDate.of(2026, 10, 26).atTime(member.at).minusSeconds(1)
+                    AlarmScheduler.schedule(app, before)
+                    val alarm = shadowOf(app.getSystemService(android.app.AlarmManager::class.java)).scheduledAlarms.single()
+                    assertEquals(listOf(member.id), shadowOf(alarm.operation).savedIntent.getStringArrayListExtra(AlarmRingService.EXTRA_IDS))
+                    val scheduledTime = java.time.Instant.ofEpochMilli(alarm.triggerAtTime).atZone(ZoneId.systemDefault()).toLocalTime()
+                    assertEquals(member.at, scheduledTime)
+                }
+            } finally { controller.pause().stop().destroy() }
+        }
+    }
+
     @Test fun stoppingTheRingingMemberKeepsLaterMembersEnabledAndScheduled() {
         val at = LocalDateTime.now().withSecond(0).withNano(0)
         val initial = AlarmBook()

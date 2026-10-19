@@ -99,9 +99,10 @@
     <string name="unit_times">次</string>
 
     <string name="alarm_edit_title">改这个闹钟</string>
+    <string name="alarm_edit_chain_title">修改整组连锁闹钟</string>
     <string name="alarm_chain_label">起床</string>
     <string name="alarm_chain_preview_bad">间隔 1–120 分钟、次数 1–12 次</string>
-    <string name="alarm_chain_note">响铃时停止当前闹钟，后续仍按各自时间提醒；App 列表中的开关与删除作用于整组。</string>
+    <string name="alarm_chain_note">响铃时停止当前闹钟，后续仍按各自时间提醒；App 内修改、开关与删除作用于整组；修改时间会保留各成员间隔。</string>
     <string name="alarm_chain_preview_pattern">将生成 %1$s 共 %2$d 个闹钟</string>
     <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
     <string name="alarm_saved">已保存</string>

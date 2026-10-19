@@ -555,18 +555,31 @@ class AlarmBook {
         return ids.count { remove(it) }
     }
 
-    /** 合并设置编辑：保留后台开关和连锁属性，不复活已消费或删除的成员。 */
-    fun mergeEditorChanges(original: Alarm, edited: Alarm): Boolean {
+    /** 编辑整组时平移时间并同步改动的字段；保留后台状态，不复活已消费成员。 */
+    fun mergeEditorChanges(original: Alarm, edited: Alarm, baseline: List<Alarm> = listOf(original)): Boolean {
         val live = find(original.id) ?: return false
-        fun <T> merge(before: T, draft: T, current: T): T =
-            if (draft != before && current == before) draft else current
-        add(live.copy(
-            label = merge(original.label, edited.label, live.label),
-            timeOfDay = merge(original.timeOfDay, edited.timeOfDay, live.timeOfDay),
-            repeat = merge(original.repeat, edited.repeat, live.repeat),
-            days = merge(original.days, edited.days, live.days),
-            deleteAfterRing = merge(original.deleteAfterRing, edited.deleteAfterRing, live.deleteAfterRing),
-        ))
+        if (live.chainId != original.chainId) return false
+        val beforeById = baseline.associateBy { it.id }
+        val targets = if (original.chainId.isEmpty()) listOf(live) else
+            items.filter { it.chainId == original.chainId && it.id in beforeById }
+        if (targets.none { it.id == original.id }) return false
+
+        // 同一字段发生后台冲突时整组保留当前值，避免只平移一部分成员而破坏间隔。
+        val moveTime = edited.at != original.at && targets.all { it.at == beforeById[it.id]?.at }
+        val rename = edited.label != original.label && targets.all { it.label == beforeById[it.id]?.label }
+        fun schedule(a: Alarm) = Triple(a.repeat, a.days, a.deleteAfterRing)
+        val changeSchedule = schedule(edited) != schedule(original) &&
+            targets.all { schedule(it) == beforeById[it.id]?.let(::schedule) }
+        val shift = java.time.Duration.between(original.at, edited.at).toMinutes()
+        for (current in targets) {
+            add(current.copy(
+                label = if (rename) edited.label else current.label,
+                timeOfDay = if (moveTime) current.at.plusMinutes(shift) else current.timeOfDay,
+                repeat = if (changeSchedule) edited.repeat else current.repeat,
+                days = if (changeSchedule) edited.days else current.days,
+                deleteAfterRing = if (changeSchedule) edited.deleteAfterRing else current.deleteAfterRing,
+            ))
+        }
         sort()
         return true
     }

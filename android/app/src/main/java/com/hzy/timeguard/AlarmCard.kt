@@ -122,7 +122,7 @@ class AlarmCard(
                 render()
             }
 
-            // 点方块本体 = 改这个闹钟（时间、名字、重复）；要删在弹窗里删
+            // 点连锁成员编辑整组；普通闹钟仍编辑单个。
             ib.alarmItemRoot.setOnClickListener { openEditor(a) }
 
             b.llAlarmList.addView(ib.root)
@@ -185,6 +185,9 @@ class AlarmCard(
     // ---------------------------------------------------------------- 普通闹钟编辑
 
     private fun openEditor(existing: Alarm?) {
+        val baseline = cfg.loadAlarms().all.filter {
+            if (existing?.chainId.isNullOrEmpty()) it.id == existing?.id else it.chainId == existing?.chainId
+        }
         val db = DialogAlarmBinding.inflate(activity.layoutInflater)
         var picked: LocalTime = existing?.at ?: LocalTime.of(7, 0)
 
@@ -240,7 +243,11 @@ class AlarmCard(
         }
 
         val dialog = AlertDialog.Builder(activity)
-            .setTitle(if (existing == null) R.string.alarm_dialog_title else R.string.alarm_edit_title)
+            .setTitle(when {
+                existing == null -> R.string.alarm_dialog_title
+                existing.chainId.isNotEmpty() -> R.string.alarm_edit_chain_title
+                else -> R.string.alarm_edit_title
+            })
             .setView(db.root)
             .setPositiveButton(R.string.btn_ok, null)     // 校验失败要能拦住关闭，所以稍后手动挂
             .setNegativeButton(R.string.btn_cancel, null)
@@ -283,7 +290,7 @@ class AlarmCard(
                         repeat = rep,
                         days = days,
                         deleteAfterRing = db.swDeleteAfterRing.isChecked,
-                    ))
+                    ), baseline)
                     if (!saved) {
                         sig = ""
                         render()
@@ -377,6 +384,7 @@ class AlarmCard(
                     return@setOnClickListener
                 }
 
+                book = cfg.loadAlarms()
                 val made = book.addChain(spec, activity.getString(R.string.alarm_chain_label))
                 persist()
                 sig = ""
