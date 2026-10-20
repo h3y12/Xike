@@ -1,6 +1,7 @@
 package com.hzy.timeguard
 
 import android.content.Context
+import android.media.AudioManager
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
@@ -28,6 +29,9 @@ class AlarmPlayback(private val context: Context) : AlarmAlertOutput {
             val candidate = MediaPlayer()
             try {
                 candidate.setAudioAttributes(attributes)
+                // 显式声明传统音量通道，兼容仅设置 USAGE_ALARM 时仍走媒体音量的系统。
+                @Suppress("DEPRECATION")
+                candidate.setAudioStreamType(AudioManager.STREAM_ALARM)
                 candidate.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK)
                 candidate.setDataSource(context, uri)
                 candidate.isLooping = true

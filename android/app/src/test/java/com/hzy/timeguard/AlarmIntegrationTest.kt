@@ -160,6 +160,7 @@ class AlarmIntegrationTest {
     @Test fun lockScreenStopButtonStopsWithoutOpeningSettings() {
         val ring = fire()
         val controller = Robolectric.buildActivity(AlarmRingActivity::class.java).setup()
+        assertEquals(android.media.AudioManager.STREAM_ALARM, controller.get().volumeControlStream)
         controller.get().findViewById<Button>(R.id.btnAlarmDismiss).performClick()
         val command = shadowOf(app).nextStartedService
         ring.get().onStartCommand(command, 0, 2)

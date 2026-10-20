@@ -67,7 +67,7 @@
     <string name="label_alarm_ring_seconds">响铃持续</string>
     <string name="unit_seconds">秒</string>
     <string name="label_alarm_vibrate">响铃时震动</string>
-    <string name="label_alarm_note">闹钟独立运行，关闭悬浮窗不会取消。响铃时可在通知或这里点「停止响铃 / 稍后提醒」。一次性闹钟在触发时删除；选择保留时则自动关闭。</string>
+    <string name="label_alarm_note">铃声使用系统闹钟音量；在 App 或响铃界面按音量键可调整。闹钟独立运行，关闭悬浮窗不会取消。响铃时可在通知或这里点「停止响铃 / 稍后提醒」。一次性闹钟在触发时删除；选择保留时则自动关闭。</string>
 
     <string name="alarm_dialog_title">闹钟</string>
     <string name="alarm_dialog_chain_title">连锁起床闹钟</string>

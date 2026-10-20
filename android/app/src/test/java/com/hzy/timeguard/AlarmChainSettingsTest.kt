@@ -266,7 +266,7 @@ class AlarmChainSettingsTest {
         try {
             val version = controller.get().findViewById<android.widget.TextView>(R.id.tvAppVersion)
             assertEquals(android.view.View.VISIBLE, version.visibility)
-            assertEquals("版本 1.2.11（14）", version.text.toString())
+            assertEquals("版本 1.2.12（15）", version.text.toString())
         } finally { controller.pause().stop().destroy() }
     }
 

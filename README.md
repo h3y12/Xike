@@ -7,7 +7,7 @@ Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、
 | 平台 | 源码与说明 | 版本 |
 |---|---|---|
 | Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.3 |
-| Android / Kotlin | [android](android/README.md) | 1.2.11 |
+| Android / Kotlin | [android](android/README.md) | 1.2.12 |
 
 两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/Xike/releases) 分发。
 
