@@ -1,0 +1,21 @@
+# 签名私钥与口令：绝不入库。
+# 私钥一旦泄露，任何人都能签出「官方更新包」——安卓只看签名，不看人。
+keystore.properties
+keystore/
+*.jks
+*.keystore
+
+# 本机 SDK 路径
+local.properties
+
+# 构建产物
+.gradle/
+build/
+app/build/
+dist/*.apk
+_verify/
+.toolchain/
+.gradle-user-home/
+
+# 日志
+*.log

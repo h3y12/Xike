@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「加一个闹钟 / 改这个闹钟」的对话框内容。
+  时间用一个大按钮（点了开系统时间选择器），其余都是常规控件。
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:paddingStart="20dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+    <Button
+        android:id="@+id/btnAlarmTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="26sp"
+        tools:text="06:30" />
+
+    <LinearLayout
+        android:id="@+id/editChainSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/alarm_label_interval"
+                android:textColor="@color/text_primary" />
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/etEditChainInterval"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="3"
+                android:gravity="center"
+                android:textColor="@color/text_primary"
+                android:contentDescription="@string/alarm_label_interval" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_minutes_unit"
+                android:textColor="@color/text_primary" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/alarm_label_count"
+                android:textColor="@color/text_primary" />
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/etEditChainCount"
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="2"
+                android:gravity="center"
+                android:textColor="@color/text_primary"
+                android:contentDescription="@string/alarm_label_count" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/tvEditChainPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatEditText
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+        android:id="@+id/etAlarmLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:hint="@string/alarm_label_name"
+        android:inputType="text"
+        android:maxLength="12"
+        android:maxLines="1"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/alarm_label_repeat"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+
+    <RadioGroup
+        android:id="@+id/rgAlarmRepeat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rbAlarmOnce"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/alarm_repeat_once"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbAlarmDaily"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="@string/alarm_repeat_daily"
+            android:textSize="13sp" />
+
+        <RadioButton
+            android:id="@+id/rbAlarmWeekly"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/alarm_repeat_weekly"
+            android:textSize="13sp" />
+    </RadioGroup>
+
+    <!-- 星期几：只在「每周」时出现 -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/tgAlarmDays"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:visibility="gone"
+        app:singleSelection="false">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay1"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_mon"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay2"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_tue"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay3"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_wed"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay4"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_thu"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay5"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_fri"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay6"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_sat"
+            android:textSize="11sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDay7"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:text="@string/day_sun"
+            android:textSize="11sp" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- 响过之后自动删除：只对「仅一次」有意义 -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/swDeleteAfterRing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:checked="true"
+        android:text="@string/alarm_delete_after_ring"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

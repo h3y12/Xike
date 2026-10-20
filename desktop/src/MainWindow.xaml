@@ -1,0 +1,225 @@
+<Window x:Class="TimeGuard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TimeGuard"
+        Icon="/Assets/TimeGuard.ico"
+        Title="息刻"
+        Width="{x:Static local:MainWindow.CardWidth}"
+        SizeToContent="Height"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="Manual"
+        FontFamily="Microsoft YaHei UI"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal">
+
+    <Window.Resources>
+        <Style x:Key="IconBtn" TargetType="Border">
+            <Setter Property="Width" Value="17" />
+            <Setter Property="Height" Value="17" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Background" Value="#26FFFFFF" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+
+        <Style x:Key="MiniBtn" TargetType="Button">
+            <Setter Property="Foreground" Value="#F2FFFFFF" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="7" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.76" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.58" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.35" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="Root"
+            CornerRadius="12"
+            Background="#DC16181C"
+            BorderBrush="#38FFFFFF"
+            BorderThickness="1"
+            Padding="0"
+            MouseLeftButtonDown="Root_MouseLeftButtonDown"
+            MouseEnter="Root_MouseEnter"
+            MouseLeave="Root_MouseLeave">
+
+        <Border.ContextMenu>
+            <ContextMenu>
+                <MenuItem x:Name="MenuCdToggle" Header="开始 / 暂停倒计时" Click="MenuCdToggle_Click" />
+                <MenuItem Header="重置倒计时" Click="MenuCdReset_Click" />
+                <Separator />
+                <MenuItem x:Name="MenuHideScore" Header="收起「早睡健康分」块" IsCheckable="True" Click="MenuHideScore_Click" />
+                <MenuItem x:Name="MenuHideCountdown" Header="收起「倒计时」块" IsCheckable="True" Click="MenuHideCountdown_Click" />
+                <MenuItem x:Name="MenuHideAlarm" Header="收起「闹钟」块" IsCheckable="True" Click="MenuHideAlarm_Click" />
+                <Separator />
+                <MenuItem Header="闹钟设置…" Click="MenuAlarmSettings_Click" />
+                <Separator />
+                <MenuItem Header="设置…" Click="MenuSettings_Click" />
+                <MenuItem x:Name="MenuClickThrough" Header="鼠标穿透" IsCheckable="True" Click="MenuClickThrough_Click" />
+                <Separator />
+                <MenuItem Header="最小化到托盘" Click="MenuMinimize_Click" />
+                <MenuItem Header="退出" Click="MenuExit_Click" />
+            </ContextMenu>
+        </Border.ContextMenu>
+
+        <!-- 外层 Grid 只为托住右下角那行窗口按钮：它必须是窗口级浮层，
+             不能挂在任何一个内容块里（原因见 BtnRow 的注释）。 -->
+        <Grid>
+
+        <StackPanel>
+
+            <!-- ============ 早睡健康分（面积约为原窗口的 60%：183×143 vs 236×184） ============
+                 高度用 MinHeight 不用 Height：状态文案是用户可自定义的，写长了会换行，
+                 固定高会把多出来的行裁掉。默认文案下 MinHeight 就是实际高度，外观不变。 -->
+            <Grid x:Name="ScorePanel" MinHeight="143" Margin="15,0,15,0">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock x:Name="ScoreText"
+                               Text="100"
+                               FontFamily="Segoe UI"
+                               FontSize="68"
+                               FontWeight="Bold"
+                               Foreground="#5DCAA5"
+                               HorizontalAlignment="Center" />
+                    <TextBlock x:Name="ClockText"
+                               Text="20:30"
+                               FontSize="13"
+                               Foreground="#B3FFFFFF"
+                               HorizontalAlignment="Center"
+                               Margin="0,3,0,0" />
+                    <TextBlock x:Name="StatusText"
+                               Text="夜深了，注意休息~"
+                               FontSize="13"
+                               Foreground="#8CFFFFFF"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Margin="0,5,0,0" />
+                </StackPanel>
+
+            </Grid>
+
+            <!-- ============ 细线 ============ -->
+            <Border x:Name="Divider" Height="1" Background="#2EFFFFFF" />
+
+            <!-- ============ 倒计时（原 timecountdown.c 的功能） ============ -->
+            <StackPanel x:Name="CdPanel" Margin="15,9,15,12">
+                <TextBlock x:Name="CdTime"
+                           Text="--:--:--"
+                           FontFamily="Segoe UI, Microsoft YaHei UI"
+                           FontSize="33"
+                           FontWeight="Bold"
+                           Foreground="#B0FFFFFF"
+                           HorizontalAlignment="Center" />
+                <TextBlock x:Name="CdLabel"
+                           Text="23:00 到点 / 45m 计时"
+                           FontSize="11"
+                           Foreground="#80FFFFFF"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0" />
+
+                <Grid Margin="0,8,0,0">
+                    <TextBox x:Name="CdInput"
+                             Width="68"
+                             Height="28"
+                             HorizontalAlignment="Left"
+                             FontFamily="Segoe UI, Microsoft YaHei UI"
+                             FontSize="13"
+                             Background="#22FFFFFF"
+                             Foreground="#F7FFFFFF"
+                             BorderBrush="#3DFFFFFF"
+                             BorderThickness="1"
+                             CaretBrush="#FFFFFFFF"
+                             SelectionBrush="#805DCAA5"
+                             VerticalContentAlignment="Center"
+                             HorizontalContentAlignment="Center"
+                             TextChanged="CdInput_TextChanged"
+                             KeyDown="CdInput_KeyDown"
+                             ToolTip="填 23:00 = 到那个钟点；填 45m = 45 分钟后；填 45 = 45 分钟（纯数字大于 23 按分钟算）" />
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button x:Name="CdPrimary" Style="{StaticResource MiniBtn}" Background="#385DCAA5"
+                                Content="开始" Click="CdPrimary_Click" />
+                        <Button x:Name="CdReset" Style="{StaticResource MiniBtn}" Background="#22FFFFFF"
+                                Content="重置" Margin="5,0,0,0" Click="CdReset_Click" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- ============ 闹钟 ============
+                 只有在「半小时内会有闹钟响」时才显示这一块（用户要求的）：
+                 平时不占地方，临近了才浮出来，免得把挂件撑长。
+                 每个闹钟一个方块，只显示时间和开关：生效 = 亮字，不生效 = 浅灰字。 -->
+            <StackPanel x:Name="AlarmPanel" Margin="15,9,15,12" Visibility="Collapsed">
+                <Grid>
+                    <TextBlock x:Name="AlarmTitle"
+                               Text="闹钟"
+                               FontSize="11"
+                               Foreground="#80FFFFFF"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left" />
+                    <TextBlock x:Name="AlarmNext"
+                               FontSize="11"
+                               Foreground="#80FFFFFF"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Right" />
+                </Grid>
+
+                <!-- 闹钟方块列表：由代码按时间顺序填 -->
+                <StackPanel x:Name="AlarmList" Margin="0,7,0,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ============ 窗口按钮（最小化 / 关闭）============
+             这一段**不能**放进上面任何一个内容块里。以前它挂在「早睡健康分」块内部，
+             于是右键菜单一勾「收起早睡健康分」，最小化按钮就跟着整枝消失
+             （父级 Collapsed，实际尺寸归零）——只剩倒计时块时，用户找不到最小化按钮，
+             只能走托盘菜单。现在是窗口级浮层，钉死在窗口右上角，
+             与两个块谁显示、谁隐藏无关。
+             Margin 右侧 7 是为了和改动前的位置逐像素对齐（旧坐标 = 块外边距 15 + 负外边距 −8）。 -->
+        <StackPanel x:Name="BtnRow"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Opacity="0"
+                    IsHitTestVisible="False"
+                    Margin="0,0,7,0">
+            <Border x:Name="BtnMin" Style="{StaticResource IconBtn}" Margin="0,0,4,0"
+                    MouseLeftButtonDown="BtnMin_MouseLeftButtonDown">
+                <TextBlock Text="–" FontSize="9" Foreground="#D9FFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <Border x:Name="BtnClose" Style="{StaticResource IconBtn}"
+                    MouseLeftButtonDown="BtnClose_MouseLeftButtonDown">
+                <TextBlock Text="✕" FontSize="8" Foreground="#D9FFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+        </StackPanel>
+
+        </Grid>
+    </Border>
+</Window>

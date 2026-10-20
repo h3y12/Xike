@@ -1,0 +1,369 @@
+<Window x:Class="TimeGuard.AlarmWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TimeGuard"
+        Icon="/Assets/TimeGuard.ico"
+        Title="息刻 · 闹钟"
+        Width="{x:Static local:AlarmWindow.CardWidth}"
+        SizeToContent="Height"
+        MaxHeight="760"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Microsoft YaHei UI"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal"
+        PreviewKeyDown="Win_PreviewKeyDown">
+
+    <Window.Resources>
+        <Style x:Key="Lbl" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#D9FFFFFF" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#80FFFFFF" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="17" />
+        </Style>
+
+        <Style x:Key="Box" TargetType="TextBox">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI" />
+            <Setter Property="Background" Value="#22FFFFFF" />
+            <Setter Property="Foreground" Value="#F7FFFFFF" />
+            <Setter Property="BorderBrush" Value="#3DFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CaretBrush" Value="#FFFFFFFF" />
+            <Setter Property="SelectionBrush" Value="#805DCAA5" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="Btn" TargetType="Button">
+            <Setter Property="Foreground" Value="#F2FFFFFF" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.78" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.62" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.32" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BtnSmall" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Padding" Value="10,0" />
+        </Style>
+
+        <!-- 页签：选中时底色亮一档，跟旁边两个形成"翻页"的观感 -->
+        <Style x:Key="Tab" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#A6FFFFFF" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" CornerRadius="8" Padding="16,7" Background="#1AFFFFFF">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#385DCAA5" />
+                                <Setter Property="Foreground" Value="#F7FFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.84" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 星期几的选择块 -->
+        <Style x:Key="Day" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="#A6FFFFFF" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,5,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bd" CornerRadius="7" Width="36" Height="28" Background="#1AFFFFFF">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4D5DCAA5" />
+                                <Setter Property="Foreground" Value="#FFFFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.84" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 重复方式：也做成一块块的小按钮，比下拉框少一次点击 -->
+        <Style x:Key="Chip" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#A6FFFFFF" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" CornerRadius="7" Height="28" Padding="12,0" Background="#1AFFFFFF">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#4D5DCAA5" />
+                                <Setter Property="Foreground" Value="#FFFFFFFF" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.84" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ListRow" TargetType="Border">
+            <Setter Property="Background" Value="#14FFFFFF" />
+            <Setter Property="CornerRadius" Value="9" />
+            <Setter Property="Padding" Value="12,8,10,8" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="14" Background="#F216181C" BorderBrush="#38FFFFFF" BorderThickness="1"
+            Padding="22,18,22,18" MouseLeftButtonDown="Card_MouseLeftButtonDown">
+        <DockPanel>
+
+            <!-- ============ 标题与页签（固定在顶部，不参与滚动）============ -->
+            <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="闹钟" FontSize="16" FontWeight="SemiBold" Foreground="#F2FFFFFF" />
+                <TextBlock x:Name="LblSubtitle" Style="{StaticResource Hint}" Margin="0,4,0,0" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                    <RadioButton x:Name="TabNormal" Style="{StaticResource Tab}" GroupName="Tabs"
+                                 Content="普通闹钟" IsChecked="True" Checked="Tab_Checked" />
+                    <RadioButton x:Name="TabWake" Style="{StaticResource Tab}" GroupName="Tabs"
+                                 Content="起床闹钟（连锁）" Margin="8,0,0,0" Checked="Tab_Checked" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ============ 底部按钮（固定在底部）============ -->
+            <Grid DockPanel.Dock="Bottom" Margin="0,14,0,0">
+                <Button x:Name="BtnClose" Style="{StaticResource Btn}" Background="#22FFFFFF"
+                        HorizontalAlignment="Left" Content="关闭" Click="BtnClose_Click" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Btn}" Background="#22FFFFFF" Content="取消"
+                            Margin="0,0,10,0" Click="BtnCancel_Click" />
+                    <Button Style="{StaticResource Btn}" Background="#385DCAA5" Content="保存"
+                            Click="BtnSave_Click" />
+                </StackPanel>
+            </Grid>
+
+            <!-- ============ 可滚动的正文 ============ -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          MaxHeight="520" Margin="0,14,0,0">
+                <Grid>
+
+                    <!-- 页签 1：普通闹钟 -->
+                    <StackPanel x:Name="PageNormal">
+
+                        <TextBlock Text="已有的闹钟" FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="#99FFFFFF" Margin="0,0,0,8" />
+                        <StackPanel x:Name="ListNormal" />
+                        <TextBlock x:Name="LblEmptyNormal" Style="{StaticResource Hint}"
+                                   Text="还没有闹钟。下面加一个。" Margin="0,2,0,8" />
+
+                        <Border CornerRadius="10" Background="#12FFFFFF" Padding="14,12,14,12" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="添加闹钟" FontSize="12.5" FontWeight="SemiBold" Foreground="#C6FFFFFF" />
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="时间" Margin="0,0,10,0" />
+                                    <TextBox Grid.Column="1" x:Name="TxtNewTime" Style="{StaticResource Box}"
+                                             Width="72" HorizontalAlignment="Left" Text="07:00" />
+                                </Grid>
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="名称" Margin="0,0,10,0" />
+                                    <TextBox Grid.Column="1" x:Name="TxtNewLabel" Style="{StaticResource Box}"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                             Padding="8,0,8,0" FontFamily="Microsoft YaHei UI" FontSize="13" />
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Style="{StaticResource Lbl}" Text="重复" Margin="0,0,10,0" />
+                                    <RadioButton x:Name="RepOnce" Style="{StaticResource Chip}" GroupName="Rep"
+                                                 Content="仅一次" IsChecked="True" Checked="Repeat_Checked" />
+                                    <RadioButton x:Name="RepDaily" Style="{StaticResource Chip}" GroupName="Rep"
+                                                 Content="每天" Checked="Repeat_Checked" />
+                                    <RadioButton x:Name="RepWeekly" Style="{StaticResource Chip}" GroupName="Rep"
+                                                 Content="每周" Checked="Repeat_Checked" />
+                                </StackPanel>
+
+                                <StackPanel x:Name="PanelDays" Orientation="Horizontal" Margin="0,10,0,0"
+                                            Visibility="Collapsed">
+                                    <TextBlock Style="{StaticResource Lbl}" Text="星期" Margin="0,0,10,0" />
+                                    <ToggleButton x:Name="D1" Style="{StaticResource Day}" Content="一" />
+                                    <ToggleButton x:Name="D2" Style="{StaticResource Day}" Content="二" />
+                                    <ToggleButton x:Name="D3" Style="{StaticResource Day}" Content="三" />
+                                    <ToggleButton x:Name="D4" Style="{StaticResource Day}" Content="四" />
+                                    <ToggleButton x:Name="D5" Style="{StaticResource Day}" Content="五" />
+                                    <ToggleButton x:Name="D6" Style="{StaticResource Day}" Content="六" />
+                                    <ToggleButton x:Name="D7" Style="{StaticResource Day}" Content="日" />
+                                </StackPanel>
+
+                                <!-- 只有「仅一次」才需要问删不删：重复的闹钟本来就该反复响 -->
+                                <CheckBox x:Name="ChkDeleteAfter" Margin="0,10,0,0" Foreground="#C6FFFFFF"
+                                          FontSize="12" IsChecked="True"
+                                          Content="响过之后自动删除（一次性闹钟）" />
+
+                                <Button x:Name="BtnAdd" Style="{StaticResource Btn}" Background="#385DCAA5"
+                                        HorizontalAlignment="Left" Margin="0,12,0,0"
+                                        Content="添加这个闹钟" Click="BtnAdd_Click" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 页签 2：起床闹钟（连锁） -->
+                    <StackPanel x:Name="PageWake" Visibility="Collapsed">
+
+                        <TextBlock Text="已有的起床闹钟" FontSize="12.5" FontWeight="SemiBold"
+                                   Foreground="#99FFFFFF" Margin="0,0,0,8" />
+                        <StackPanel x:Name="ListWake" />
+                        <TextBlock x:Name="LblEmptyWake" Style="{StaticResource Hint}"
+                                   Text="还没有起床闹钟。下面设一串。" Margin="0,2,0,8" />
+
+                        <Border CornerRadius="10" Background="#12FFFFFF" Padding="14,12,14,12" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="自动生成一串" FontSize="12.5" FontWeight="SemiBold" Foreground="#C6FFFFFF" />
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,0"
+                                           Text="填起始时间、间隔、次数，生成的一串会互相咬合：关掉一个，下一个照常响；到最后一个才整串结束。" />
+
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="起始时间" Margin="0,0,10,0" />
+                                    <TextBox Grid.Column="1" x:Name="TxtChainStart" Style="{StaticResource Box}"
+                                             Width="72" Text="06:30" TextChanged="Chain_TextChanged" />
+                                    <TextBlock Grid.Column="2" x:Name="LblChainPreview0" Style="{StaticResource Hint}"
+                                               Margin="12,0,0,0" VerticalAlignment="Center" />
+                                </Grid>
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="间隔时间" Margin="0,0,10,0" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBox x:Name="TxtChainInterval" Style="{StaticResource Box}" Width="56"
+                                                 Text="5" TextChanged="Chain_TextChanged" />
+                                        <TextBlock Style="{StaticResource Lbl}" Text="分钟" Margin="6,0,0,0" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="响铃次数" Margin="0,0,10,0" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBox x:Name="TxtChainCount" Style="{StaticResource Box}" Width="56"
+                                                 Text="3" TextChanged="Chain_TextChanged" />
+                                        <TextBlock Style="{StaticResource Lbl}" Text="个" Margin="6,0,0,0" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Style="{StaticResource Lbl}" Text="重复" Margin="0,0,10,0" />
+                                    <RadioButton x:Name="ChainDaily" Style="{StaticResource Chip}" GroupName="ChainRep"
+                                                 Content="每天" IsChecked="True" />
+                                    <RadioButton x:Name="ChainWeekdays" Style="{StaticResource Chip}" GroupName="ChainRep"
+                                                 Content="工作日" />
+                                    <RadioButton x:Name="ChainOnce" Style="{StaticResource Chip}" GroupName="ChainRep"
+                                                 Content="仅一次" />
+                                </StackPanel>
+
+                                <Grid Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Style="{StaticResource Lbl}" Text="名称" Margin="0,0,10,0" />
+                                    <TextBox Grid.Column="1" x:Name="TxtChainLabel" Style="{StaticResource Box}"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                             Padding="8,0,8,0" FontFamily="Microsoft YaHei UI" FontSize="13"
+                                             Text="起床" />
+                                </Grid>
+
+                                <!-- 生成前先把结果念给用户听，避免生成完才发现算错 -->
+                                <Border CornerRadius="8" Background="#1AFFFFFF" Padding="12,9,12,9" Margin="0,12,0,0">
+                                    <TextBlock x:Name="LblChainPreview" FontSize="11.5" Foreground="#C6FFFFFF"
+                                               TextWrapping="Wrap" LineHeight="18" />
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Style="{StaticResource BtnSmall}" Background="#385DCAA5"
+                                            Content="替换成一串新的" Click="BtnChainGenerate_Click" />
+                                    <Button Style="{StaticResource BtnSmall}" Background="#1AFFFFFF" Margin="8,0,0,0"
+                                            Content="追加到已有" Click="BtnChainAppend_Click" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>
