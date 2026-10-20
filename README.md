@@ -7,7 +7,7 @@ Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、
 | 平台 | 源码与说明 | 版本 |
 |---|---|---|
 | Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.3 |
-| Android / Kotlin | [android](android/README.md) | 1.2.12 |
+| Android / Kotlin | [android](android/README.md) | 1.2.13 |
 
 两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/Xike/releases) 分发。
 
@@ -38,4 +38,12 @@ Windows 使用 .NET 8 SDK，在 `desktop/` 执行 `dotnet build -c Release`；�
 
 上传前完成了源码审查和 7 项整改，包括休眠后闹钟误响 / 漏响、旧草稿覆盖实时状态、Android 12+ 穿透透明度、声音回退、配置备份恢复、构建可移植性与测试退出码。详情见 [整改记录](docs/GITHUB_FIXES.md) 与 [初次审查报告](docs/GITHUB_PREP_REVIEW.md)。
 
-当前仓库为私有仓库，双端 CI 会在每次 push / pull request 时检查构建与回归。真机跨应用穿透、整夜锁屏提醒、真实音频解码和混合 DPI 多屏仍需人工验收。正式开源许可证尚未选定。
+双端 CI 在每次 push / pull request 时检查构建与回归。用户已反馈基础真机实测基本正常；整夜锁屏、厂商省电/重启/改时区、真实声卡和混合 DPI 多屏仍需持续验收，详见公开准备记录。
+
+## 许可与贡献
+
+本项目原创代码和资源采用 [PolyForm Noncommercial 1.0.0](LICENSE)：允许原文规定的非商业使用、修改和再分发，分发须保留许可和 [NOTICE](NOTICE)。作者 h3y12 保留自身代码的商业使用权。许可对教育、慈善等机构有原文规定的例外，具体以英文原文为准。
+
+这是公开的非商业源码许可，不是 OSI 定义的开源许可。MIT、GPL、Apache 2.0 等标准开源许可允许商用，不适用于本项目原创部分。第三方组件仍按其原有许可授权，见 [第三方声明](THIRD_PARTY_NOTICES.md)。
+
+反馈与贡献见 [CONTRIBUTING.md](CONTRIBUTING.md)，漏洞报告见 [SECURITY.md](SECURITY.md)。为保留作者商业使用权，外部代码贡献须先单独确认授权，暂不直接接收合并。

@@ -219,9 +219,12 @@ class ManualCountdown {
         val m = runCatching { CdMode.valueOf(s.mode) }.getOrNull() ?: return
         val restoredPhase = runCatching { CdPhase.valueOf(s.phase) }.getOrNull() ?: return
         if (restoredPhase == CdPhase.Idle) return
+        if (m == CdMode.Duration && s.durationMinutes !in 1..MAX_DURATION_MINUTES) return
 
         val target = SleepRules.tryParseHm(s.clockTarget) ?: LocalTime.MIDNIGHT
         val storedDeadline = runCatching { LocalDateTime.parse(s.deadline) }.getOrNull()
+        if (s.deadline.isNotBlank() && storedDeadline == null) return
+        if (storedDeadline != null && storedDeadline.year !in 1..9999) return
         val parsedDeadline = storedDeadline ?: now
 
         plan = CdPlan(
@@ -263,11 +266,14 @@ class ManualCountdown {
         if (restoredPhase == CdPhase.Paused) {
             // 秒 + 纳秒一起还原；只按秒还原会让 0–1 秒之间的剩余量塌成 0（见 snapshot 的说明）。
             // 旧快照没有 pausedNanos 这一项，字段默认 0 → 行为与改动前一致，能平滑升级。
-            val nanos = s.pausedSeconds.coerceAtLeast(0L) * 1_000_000_000L +
-                s.pausedNanos.coerceIn(0L, 999_999_999L)
-            pausedRemaining = Duration.ofNanos(nanos)
+            val maxSeconds = MAX_DURATION_MINUTES * 60L
+            val seconds = s.pausedSeconds.coerceIn(0L, maxSeconds)
+            val nanos = if (seconds == maxSeconds) 0L else s.pausedNanos.coerceIn(0L, 999_999_999L)
+            pausedRemaining = Duration.ofSeconds(seconds, nanos)
             phase = if (pausedRemaining.isZero) CdPhase.Finished else CdPhase.Paused
-            if (phase == CdPhase.Paused) deadline = now.plus(pausedRemaining)
+            if (phase == CdPhase.Paused) {
+                deadline = runCatching { now.plus(pausedRemaining) }.getOrNull() ?: run { reset(); return }
+            }
             return
         }
 

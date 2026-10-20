@@ -338,7 +338,7 @@ object AlarmStore {
     fun serialize(records: List<Record>): String =
         records.joinToString("\n") { r ->
             listOf(
-                r.id, r.at, r.label,
+                r.id, r.at, r.label.map { if (it.isISOControl()) ' ' else it }.joinToString(""),
                 if (r.on) "1" else "0",
                 r.repeat, r.days,
                 if (r.deleteAfterRing) "1" else "0",

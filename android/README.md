@@ -1,6 +1,6 @@
 # 息刻（Xike） · 安卓版
 
-当前版本 1.2.12（versionCode 15）。铃声显式绑定系统闹钟通道，兼容仅声明音频用途时的音量映射问题；主页和响铃界面的音量键调整闹钟音量。保留连锁次数、间隔编辑及实际版本显示。
+当前版本 1.2.13（versionCode 16）。修复特殊名称字符破坏保存格式、损坏倒计时快照恢复溢出的容错问题；APK 内附项目许可和第三方声明。保留连锁次数/间隔编辑、闹钟音量通道和实际版本显示。
 
 ## 从源码构建
 
@@ -146,73 +146,14 @@ APK 是自签名的，装之前手机会拦一下，正常流程：
 
 ## 自己构建
 
-环境（2026-10-06 已共享安装到 Program Files；JAVA_HOME、ANDROID_HOME、ANDROID_SDK_ROOT 和用户 PATH 已配置。其他项目可复用，新终端生效）：
+使用本文开头的 Gradle Wrapper 流程，无需全局 Gradle。安装 JDK 21 与 Android SDK 35，配置 JAVA_HOME、ANDROID_HOME；依赖首次解析需要网络，缓存完整后才可加 --offline。不要复制作者机器的固定安装路径。
 
-| 组件 | 版本 | 路径 |
-|---|---|---|
-| JDK | Microsoft OpenJDK 21.0.12.1 | `C:\Program Files\Microsoft\OpenJDK\jdk-21.0.12.1+1` |
-| Android SDK | platforms 35、build-tools 34.0.0/35.0.0、platform-tools | `C:\Program Files\Android\Sdk` |
-| Gradle | 8.9 | `C:\Program Files\Gradle\gradle-8.9` |
-| AGP | 8.7.3 | Gradle 自动下载 |
-| Kotlin | 1.9.24 | Gradle 自动下载 |
-
-```bash
-export JAVA_HOME='C:\Program Files\Microsoft\OpenJDK\jdk-21.0.12.1+1'
-cd C:\project\TimeGuardAndroid
-
-# 跑单元测试
-"C:\Program Files\Gradle\gradle-8.9\bin\gradle.bat" --console=plain :app:testDebugUnitTest
-
-# 出 release APK（自签名）
-"C:\Program Files\Gradle\gradle-8.9\bin\gradle.bat" --console=plain :app:assembleRelease
-# 产物：app/build/outputs/apk/release/app-release.apk
+```powershell
+.\gradlew.bat --no-daemon --no-parallel :app:testDebugUnitTest :app:assembleDebug
+.\scripts\build-android.ps1 -Debug
 ```
 
-PowerShell 一键构建并运行测试：`& .\scripts\build-android.ps1`，新版产物为 `dist\息刻-安卓版.apk`。
-
-这里只安装编译工具，未安装模拟器、系统镜像或虚拟化驱动；下面的模拟器操作需先另行安装这些组件。
-
-签名密钥在 `keystore/timeguard.jks`，**这个文件丢了就没法给已装的版本打覆盖安装包**，注意别删。
-
-### ⚠️ 本机构建会「假死」十几分钟：两个已知原因，都不是代码坏了
-
-排查耗时很长，记在这里免得下次重来一遍。看到构建长时间不动，**先按下面这两条对号入座**，
-别急着改代码。
-
-**① 删文件慢到病态（清旧输出时）**
-
-本机通过构建系统逐文件删除极慢（实测一次 `mergeDebugResources` 要清 250 多个旧资源文件，
-能占满十几分钟 CPU）。症状是上一个任务显示完成、下一个任务长时间没动静，但**在推进**。
-
-判断：抓 Gradle 守护进程的线程栈，如果 worker 是 `RUNNABLE` 卡在
-`sun.nio.fs.WindowsNativeDispatcher.DeleteFile0`，就是它。
-```bash
-tasklist /FI "IMAGENAME eq java.exe"          # 找内存较大的那个 java.exe
-"C:\Program Files\Microsoft\OpenJDK\jdk-21.0.12.1+1\bin\jstack.exe" <pid> | grep -A 16 '"Execution worker'
-```
-对策：**别主动 `clean`**，也别说 `-t:Rebuild`；需要「全新构建」就换输出目录而不是删旧目录。
-真要清 `app/build`，让文件系统去清（在资源管理器里删是秒级的）——别从命令行或构建系统里逐文件删。
-
-**② Kotlin 编译「回退成进程内」后真死锁**
-
-如果日志出现：
-```
-e: java.rmi.NoSuchObjectException: no such object in table
-e: Daemon compilation failed: Could not connect to Kotlin compile daemon
-Using fallback strategy: Compile without Kotlin daemon
-```
-Gradle 会回退成进程内编译。而**进程内编译 + `org.gradle.parallel=true`（本仓库的默认）会死锁**：
-所有 worker 都 `WAITING`、没人在跑，构建永远不返回。
-
-对策（任选一个，`--no-parallel` 最省事）：
-```bash
-# 先停掉可能残留的守护进程
-"C:\Program Files\Gradle\gradle-8.9\bin\gradle.bat" --stop
-# 再非并行重跑
-"C:\Program Files\Gradle\gradle-8.9\bin\gradle.bat" --offline --no-parallel --console=plain :app:testDebugUnitTest
-```
-这种死锁有个便宜判据：`jstack` 里**没有任何一个 worker 是 `RUNNABLE`**（对比 ①，① 里总有一个在跑）。
-
+正式包使用 `scripts/build-android.ps1`。没有签名材料时会生成未签名包；日常开发请用 debug，正式用户从 Releases 下载签名包。
 
 ### 发布签名口令放哪儿
 
@@ -222,7 +163,7 @@ Gradle 会回退成进程内编译。而**进程内编译 + `org.gradle.parallel
 | 顺序 | 来源 | 用途 |
 |---|---|---|
 | ① | 环境变量 `TIMEGUARD_STORE_PASSWORD` / `TIMEGUARD_KEY_PASSWORD`（另有 `TIMEGUARD_KEY_ALIAS` / `TIMEGUARD_STORE_FILE`） | CI 或别人的机器 |
-| ② | 工程根目录的 `keystore.properties` | 本机日常构建（已有，且已在 `.gitignore` 里排除） |
+| ② | 工程根目录的 `keystore.properties` | 本地构建（需自行配置，且已在 `.gitignore` 里排除） |
 
 两处都没有时**不会报错**，而是产出一个**不带签名**的 release 包，并在构建日志里打印一句提示。
 本机照旧直接 `assembleRelease` 即可，口令只需维护 `keystore.properties` 一份。
@@ -241,53 +182,19 @@ keyPassword=……
 
 ---
 
-## 在电脑上调试（不接手机）
+## 在电脑上调试
 
-改一行代码就往手机里导一次 APK、再手动装一次，太慢。电脑上有两条路，都用不到手机。
+先在 Android Studio 创建并启动模拟器，设置 JAVA_HOME（JDK 21）与 ANDROID_HOME。执行：
 
-### 1) 只验逻辑 —— 几秒钟
-
-核心逻辑（扣分口径、手动倒计时状态机）是纯 Kotlin，不碰 Android API，
-在 JVM 上直接跑，不用模拟器也不用手机：
-
-```bash
-"C:\Program Files\Gradle\gradle-8.9\bin\gradle.bat" --console=plain :app:testDebugUnitTest
+```powershell
+.\scripts\run-on-emulator.ps1 -Serial emulator-5554
+# 也可指定已有 AVD 名称启动：
+.\scripts\run-on-emulator.ps1 -Avd YourAvdName
 ```
 
-### 2) 连界面一起看 —— 安卓模拟器
+脚本使用 Gradle Wrapper 构建 debug APK，明确选择 emulator-* 设备并验证 QEMU 标志；不会自动清空数据或修改系统时间，也不会把 APK 安装到真实手机。若已安装正式签名版，建议另用一个模拟器，避免为调试卸载而丢失配置。启动脚本不自动开放应用权限，请在界面按需授权。
 
-双击工程根目录的 **`启动模拟器-在电脑上运行.cmd`**，它一条龙做完：
-查加速驱动 → 编译 release APK → 启动模拟器 → 等开机 → 覆盖安装 →
-代授悬浮窗权限 → 打开 App。以后改完代码再双击一次即可。
-
-**需要你先做一次管理员操作**（只做一次，装完永久有效）：
-
-> 右键点 `C:\Program Files\Android\Sdk\extras\google\Android_Emulator_Hypervisor_Driver\silent_install.bat`，
-> 选「以管理员身份运行」。
-
-x86_64 系统镜像强制要求硬件加速，没有这个驱动模拟器会直接退出（自检退出码 6，
-输出「Android Emulator hypervisor driver is not installed on this machine」）。
-本机 Hyper-V 没开，所以走 AEHD 这条驱动，不需要重启。
-
-模拟器规格（720×1600 / 320dpi / 2GB RAM / 硬件键盘直通）记在
-`%USERPROFILE%\.android\avd\TimeGuard.avd\config.ini`，
-是照这台机器（i3-12100 无独显、RDP 远程会话拿不到宿主 OpenGL）调的：
-屏幕调小、渲染走 swiftshader 软件栈，免得按 1080×2340 开到卡成幻灯片。
-比真机慢，但看排版和交互够用。
-
-### 3) 手机上看（模拟器也懒得开时）
-
-手机与电脑同一 Wi-Fi，Android 11 以上开「开发者选项 → 无线调试」，配对一次之后：
-
-```bash
-adb install -r app\build\outputs\apk\release\app-release.apk   # 覆盖更新
-adb shell am start -n com.hzy.timeguard/.MainActivity
-```
-
-数据线同理。`install -r` 覆盖安装会保留 App 数据，配置里的倒计时状态不丢。
-比「导出到手机 → 文件管理器点安装」省事得多。
-
----
+真机调试请自行指定设备序列号：`adb -s SERIAL install -r dist/TimeGuard-debug.apk`。debug 与正式包签名不同，不能相互覆盖。正式用户使用 GitHub Releases 的原签名 APK 覆盖升级。
 
 ## 怎么确认它没算错
 
@@ -295,7 +202,7 @@ adb shell am start -n com.hzy.timeguard/.MainActivity
 可以脱离手机直接在 JVM 上跑：
 
 ```bash
-gradle :app:testDebugUnitTest
+.\gradlew.bat :app:testDebugUnitTest
 ```
 
 | 测试 | 盯什么 |

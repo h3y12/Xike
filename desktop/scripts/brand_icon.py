@@ -36,7 +36,7 @@ def export():
 </svg>'''
     (ROOT/'Assets/Xike.svg').write_text(svg,encoding='utf-8')
     render(512).save(ROOT/'Assets/Xike.png')
-    android = ROOT.parent/'TimeGuardAndroid/app/src/main/res'
+    android = ROOT.parent/'android/app/src/main/res'
     vector = f'''<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
     <path android:fillColor="{WHITE}" android:pathData="{MOON}"/>

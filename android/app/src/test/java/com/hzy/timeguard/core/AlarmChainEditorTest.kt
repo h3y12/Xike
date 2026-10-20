@@ -68,4 +68,16 @@ class AlarmChainEditorTest {
         val updated = record.copy(chainIntervalMinutes = 7)
         assertEquals(updated, AlarmStore.parse(AlarmStore.serialize(listOf(updated))).single())
     }
+    @Test fun controlCharactersInLabelCannotSplitRecordsOrShiftFields() {
+        val records = listOf(
+            AlarmStore.Record(id = "a", at = "06:30", label = "早\u0001起\n闹\r钟", chain = "group", chainIndex = 1),
+            AlarmStore.Record(id = "b", at = "07:00", label = "普通"),
+        )
+        val restored = AlarmStore.parse(AlarmStore.serialize(records))
+        assertEquals(2, restored.size)
+        assertEquals("早 起 闹 钟", restored[0].label)
+        assertEquals("group", restored[0].chain)
+        assertEquals(1, restored[0].chainIndex)
+        assertEquals(records[1], restored[1])
+    }
 }

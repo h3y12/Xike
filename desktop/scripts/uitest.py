@@ -40,7 +40,7 @@ VK = {
 }
 
 
-def find_window(title="TimeGuard"):
+def find_window(title="息刻"):
     """找可见的 TimeGuard 主窗口；跳过 GDI+ 那种 1x1 隐藏辅助窗口。"""
     found = []
 

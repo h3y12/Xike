@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -46,8 +47,8 @@ android {
         applicationId = "com.hzy.timeguard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.2.12"
+        versionCode = 16
+        versionName = "1.2.13"
     }
 
     signingConfigs {
@@ -103,6 +104,19 @@ android {
         }
     }
 }
+
+val prepareLegalAssets by tasks.registering(Sync::class) {
+    val repositoryRoot = rootProject.file("..")
+    from(repositoryRoot) {
+        include("LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "licenses/**")
+    }
+    into(layout.buildDirectory.dir("generated/legalAssets"))
+    doFirst {
+        check(File(repositoryRoot, "LICENSE").isFile) { "Repository LICENSE is missing." }
+    }
+}
+android.sourceSets.getByName("main").assets.srcDir(layout.buildDirectory.dir("generated/legalAssets"))
+tasks.named("preBuild").configure { dependsOn(prepareLegalAssets) }
 
 // 每次配置阶段都提示一句，免得「包没签名」被当成莫名奇妙的问题去查
 if (!hasSigning) {

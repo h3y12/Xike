@@ -547,4 +547,25 @@ class ManualCountdownTest {
         assertFalse(duration.subLabel().contains("不可暂停"))
         assertTrue(duration.subLabel().contains("结束"))
     }
+    @Test fun oversizedPausedSnapshotIsBoundedWithoutNanosecondOverflow() {
+        val c = ManualCountdown()
+        c.restore(CdSnapshot(mode = CdMode.Duration.name, durationMinutes = 45,
+            phase = CdPhase.Paused.name, pausedSeconds = Long.MAX_VALUE, pausedNanos = Long.MAX_VALUE), now)
+        assertEquals(CdPhase.Paused, c.phase)
+        assertEquals(Duration.ofHours(24), c.tick(now).remaining)
+        c.resume(now)
+        assertEquals(Duration.ofHours(24), c.tick(now).remaining)
+    }
+
+    @Test fun invalidSnapshotDurationOrExtremeDeadlineIsIgnored() {
+        val c = ManualCountdown()
+        c.restore(CdSnapshot(mode = CdMode.Duration.name, durationMinutes = Int.MAX_VALUE,
+            phase = CdPhase.Paused.name, pausedSeconds = 60), now)
+        assertEquals(CdPhase.Idle, c.phase)
+        for (value in listOf(LocalDateTime.MIN.toString(), LocalDateTime.MAX.toString(), "broken")) {
+            c.restore(CdSnapshot(mode = CdMode.ClockTime.name, clockTarget = "23:00", deadline = value,
+                phase = CdPhase.Running.name), now)
+            assertEquals(CdPhase.Idle, c.phase)
+        }
+    }
 }
