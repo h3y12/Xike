@@ -106,7 +106,7 @@
     <string name="alarm_chain_preview_pattern">将生成 %1$s 共 %2$d 个闹钟</string>
     <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
     <string name="alarm_saved">已保存</string>
-    <string name="alarm_editor_expired">该闹钟已响过或被删除，请重新选择</string>
+    <string name="alarm_editor_expired">闹钟已更新、响过或被删除，请重新打开后修改</string>
     <string name="alarm_deleted">已删除</string>
     <string name="btn_delete_chain">删除整组</string>
     <string name="alarm_chain_deleted">已删除整组 %1$d 个闹钟</string>
@@ -122,4 +122,5 @@
     <string name="btn_grant_battery">打开电池优化设置</string>
     <string name="btn_background_help">iQOO / vivo 后台提醒设置</string>
     <string name="background_help">请在系统设置中为息刻开启：\n\n1. 应用与权限 → 权限管理 → 自启动。\n2. 电池 → 后台耗电管理（或后台高耗电）→ 允许后台运行。\n\n菜单名称会随 OriginOS 版本变化，可搜索“自启动”和“后台耗电”。这些厂商开关无法由应用准确检测，所以这里不会显示“已授权”。\n\n设置后，关闭悬浮窗、退出息刻并锁屏，设一个两分钟后的闹钟验证。系统强行停止或清除应用数据会取消闹钟。</string>
+    <string name="app_version">版本 %1$s（%2$d）</string>
 </resources>

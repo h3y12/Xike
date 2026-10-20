@@ -181,8 +181,8 @@ class AlarmChainSettingsTest {
                 assertEquals("12:00", saved.all.single { it.chainId.isEmpty() }.timeText)
                 // 系统只注册下一次唤醒；推进到每个成员之前，验证后续调度也使用新时间。
                 for (member in members) {
-                    val before = java.time.LocalDate.of(2026, 10, 26).atTime(member.at).minusSeconds(1)
-                    AlarmScheduler.schedule(app, before)
+                    val beforeRing = java.time.LocalDate.of(2026, 10, 26).atTime(member.at).minusSeconds(1)
+                    AlarmScheduler.schedule(app, beforeRing)
                     val alarm = shadowOf(app.getSystemService(android.app.AlarmManager::class.java)).scheduledAlarms.single()
                     assertEquals(listOf(member.id), shadowOf(alarm.operation).savedIntent.getStringArrayListExtra(AlarmRingService.EXTRA_IDS))
                     val scheduledTime = java.time.Instant.ofEpochMilli(alarm.triggerAtTime).atZone(ZoneId.systemDefault()).toLocalTime()
@@ -190,6 +190,84 @@ class AlarmChainSettingsTest {
                 }
             } finally { controller.pause().stop().destroy() }
         }
+    }
+
+    @Test fun existingChainCanGrowShrinkAndRememberItsIntervalAfterReopening() {
+        cfg.saveAlarms(book())
+        val before = cfg.loadAlarms().chains().single().second
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val activity = controller.get()
+            fun open(index: Int): AlertDialog {
+                activity.findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(index).performClick()
+                shadowOf(Looper.getMainLooper()).idle()
+                return ShadowDialog.getLatestDialog() as AlertDialog
+            }
+            var dialog = open(1)
+            assertEquals("3", dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.text.toString())
+            assertEquals("5", dialog.findViewById<android.widget.EditText>(R.id.etEditChainInterval)!!.text.toString())
+            dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.setText("5")
+            dialog.findViewById<android.widget.EditText>(R.id.etEditChainInterval)!!.setText("7")
+            assertTrue(dialog.findViewById<android.widget.TextView>(R.id.tvEditChainPreview)!!.text.contains("06:58"))
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            var members = cfg.loadAlarms().chains().single().second
+            assertEquals(listOf("06:30", "06:37", "06:44", "06:51", "06:58"), members.map { it.timeText })
+            assertEquals(before.map { it.id }, members.take(3).map { it.id })
+            assertEquals("普通", cfg.loadAlarms().all.single { it.chainId.isEmpty() }.label)
+            dialog = open(0)
+            dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.setText("1")
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            assertEquals(1, cfg.loadAlarms().chains().single().second.size)
+            dialog = open(0)
+            assertEquals("7", dialog.findViewById<android.widget.EditText>(R.id.etEditChainInterval)!!.text.toString())
+            dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.setText("3")
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            members = cfg.loadAlarms().chains().single().second
+            assertEquals(listOf("06:30", "06:37", "06:44"), members.map { it.timeText })
+        } finally { controller.pause().stop().destroy() }
+    }
+
+    @Test fun invalidChainSizeOrIntervalDoesNotSaveOrDismissTheEditor() {
+        cfg.saveAlarms(book())
+        val before = cfg.loadAlarms().all
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            controller.get().findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(0).performClick()
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            for ((count, interval) in listOf("0" to "5", "13" to "5", "3" to "0", "3" to "121", "" to "5")) {
+                dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.setText(count)
+                dialog.findViewById<android.widget.EditText>(R.id.etEditChainInterval)!!.setText(interval)
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                assertTrue(dialog.isShowing)
+                assertEquals(before, cfg.loadAlarms().all)
+            }
+        } finally { controller.pause().stop().destroy() }
+    }
+
+    @Test fun resizingAChainDoesNotResurrectMembersConsumedWhileEditing() {
+        val initial = book()
+        cfg.saveAlarms(initial)
+        val first = initial.chains().single().second.first()
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            controller.get().findViewById<ViewGroup>(R.id.llAlarmList).getChildAt(1).performClick()
+            val dialog = ShadowDialog.getLatestDialog() as AlertDialog
+            dialog.findViewById<android.widget.EditText>(R.id.etEditChainCount)!!.setText("5")
+            initial.remove(first.id)
+            cfg.saveAlarms(initial)
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+            assertNull(cfg.loadAlarms().find(first.id))
+            assertEquals(2, cfg.loadAlarms().chains().single().second.size)
+        } finally { controller.pause().stop().destroy() }
+    }
+
+    @Test fun homeShowsTheInstalledVersion() {
+        val controller = Robolectric.buildActivity(MainActivity::class.java).setup()
+        try {
+            val version = controller.get().findViewById<android.widget.TextView>(R.id.tvAppVersion)
+            assertEquals(android.view.View.VISIBLE, version.visibility)
+            assertEquals("版本 1.2.11（14）", version.text.toString())
+        } finally { controller.pause().stop().destroy() }
     }
 
     @Test fun stoppingTheRingingMemberKeepsLaterMembersEnabledAndScheduled() {

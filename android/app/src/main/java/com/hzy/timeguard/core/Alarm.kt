@@ -50,6 +50,9 @@ data class Alarm(
 
     /** 在连锁串里的序号（从 1 开始）。 */
     val chainIndex: Int = 0,
+
+    /** 保存单成员连锁组的间隔；0 表示旧数据，由相邻成员推断。 */
+    val chainIntervalMinutes: Int = 0,
 ) {
     /** 截到分的钟点。 */
     val at: LocalTime get() = timeOfDay.withSecond(0).withNano(0)
@@ -514,6 +517,7 @@ class AlarmBook {
                 deleteAfterRing = !spec.daily,
                 chainId = cid,
                 chainIndex = i + 1,
+                chainIntervalMinutes = spec.intervalMinutes,
             )
 
             if (spec.daily && spec.weekdaysOnly) {
@@ -584,6 +588,28 @@ class AlarmBook {
         return true
     }
 
+    /** 显式调整整组次数与间隔；保留已有成员 ID、重复规则和开关状态。 */
+    fun resizeChainFromEditor(
+        original: Alarm, edited: Alarm, baseline: List<Alarm>, intervalMinutes: Int, count: Int,
+    ): Boolean {
+        if (original.chainId.isEmpty() || AlarmChainSpec(intervalMinutes = intervalMinutes, count = count).validate() != null) return false
+        val before = baseline.filter { it.chainId == original.chainId }.sortedBy { it.chainIndex }
+        val current = items.filter { it.chainId == original.chainId }.sortedBy { it.chainIndex }
+        // 调整结构需要完整快照；后台消费、删除或重新编辑后要求重开窗口，避免复活旧成员。
+        if (before.isEmpty() || current.size != before.size || current.zip(before).any { (live, old) -> live.copy(enabled = old.enabled) != old }) return false
+        if (!mergeEditorChanges(original, edited, baseline)) return false
+        val merged = items.filter { it.chainId == original.chainId }.sortedBy { it.chainIndex }
+        val first = merged.first()
+        val resized = (0 until count).map { i ->
+            val member = merged.getOrNull(i) ?: first.copy(id = Alarm.newId(), enabled = merged.any { it.enabled })
+            member.copy(timeOfDay = first.at.plusMinutes(i.toLong() * intervalMinutes), chainIndex = i + 1, chainIntervalMinutes = intervalMinutes).normalized()
+        }
+        items.removeAll { it.chainId == original.chainId }
+        items += resized
+        sort()
+        return true
+    }
+
     /** 已生成的连锁串（按 chainId 分组）。 */
     fun chains(): List<Pair<String, List<Alarm>>> =
         items.filter { it.chainId.isNotEmpty() }
@@ -609,7 +635,8 @@ class AlarmBook {
 
         return AlarmChainSpec(
             startAt = list[0].at,
-            intervalMinutes = if (interval <= 0) 5 else interval,
+            intervalMinutes = list[0].chainIntervalMinutes.takeIf { it in 1..AlarmChainSpec.MAX_INTERVAL_MINUTES }
+                ?: if (interval <= 0) 5 else interval,
             count = list.size,
             daily = list[0].repeat != AlarmRepeat.ONCE,
             weekdaysOnly = weekdays,

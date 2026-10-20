@@ -242,6 +242,7 @@ class AppConfig(context: Context) {
                     deleteAfterRing = rec.deleteAfterRing,
                     chainId = rec.chain,
                     chainIndex = rec.chainIndex,
+                    chainIntervalMinutes = rec.chainIntervalMinutes,
                 ),
             )
         }
@@ -266,6 +267,7 @@ class AppConfig(context: Context) {
                 deleteAfterRing = it.deleteAfterRing,
                 chain = it.chainId,
                 chainIndex = it.chainIndex,
+                chainIntervalMinutes = it.chainIntervalMinutes,
             )
         }
         alarmRecords = AlarmStore.serialize(records)
@@ -330,6 +332,7 @@ object AlarmStore {
         val deleteAfterRing: Boolean = true,
         val chain: String = "",
         val chainIndex: Int = 0,
+        val chainIntervalMinutes: Int = 0,
     )
 
     fun serialize(records: List<Record>): String =
@@ -339,7 +342,7 @@ object AlarmStore {
                 if (r.on) "1" else "0",
                 r.repeat, r.days,
                 if (r.deleteAfterRing) "1" else "0",
-                r.chain, r.chainIndex.toString(),
+                r.chain, r.chainIndex.toString(), r.chainIntervalMinutes.toString(),
             ).joinToString(SEP.toString())
         }
 
@@ -364,6 +367,7 @@ object AlarmStore {
                 deleteAfterRing = f.getOrElse(6) { "1" } != "0",
                 chain = f.getOrElse(7) { "" },
                 chainIndex = f.getOrElse(8) { "0" }.toIntOrNull()?.coerceAtLeast(0) ?: 0,
+                chainIntervalMinutes = f.getOrElse(9) { "0" }.toIntOrNull()?.takeIf { it in 1..AlarmChainSpec.MAX_INTERVAL_MINUTES } ?: 0,
             )
         }
         return out

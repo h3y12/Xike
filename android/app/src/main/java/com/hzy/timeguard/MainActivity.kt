@@ -87,6 +87,10 @@ class MainActivity : AppCompatActivity() {
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
         setSupportActionBar(b.toolbar)
+        @Suppress("DEPRECATION")
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        val versionCode = androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(packageInfo)
+        b.tvAppVersion.text = getString(R.string.app_version, packageInfo.versionName.orEmpty(), versionCode)
 
         cfg = AppConfig(this)
 

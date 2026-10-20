@@ -185,11 +185,35 @@ class AlarmCard(
     // ---------------------------------------------------------------- 普通闹钟编辑
 
     private fun openEditor(existing: Alarm?) {
-        val baseline = cfg.loadAlarms().all.filter {
+        val editorBook = cfg.loadAlarms()
+        val baseline = editorBook.all.filter {
             if (existing?.chainId.isNullOrEmpty()) it.id == existing?.id else it.chainId == existing?.chainId
         }
         val db = DialogAlarmBinding.inflate(activity.layoutInflater)
         var picked: LocalTime = existing?.at ?: LocalTime.of(7, 0)
+
+        val chain = baseline.sortedBy { it.chainIndex }
+        val chainSpec = existing?.chainId?.takeIf { it.isNotEmpty() }?.let { editorBook.inferChainSpec(it) }
+        db.editChainSettings.visibility = if (chainSpec != null) View.VISIBLE else View.GONE
+        db.etEditChainInterval.setText(chainSpec?.intervalMinutes?.toString().orEmpty())
+        db.etEditChainCount.setText(chainSpec?.count?.toString().orEmpty())
+        fun updateEditChainPreview() {
+            val initial = existing ?: return
+            if (chainSpec == null) return
+            val interval = db.etEditChainInterval.text.toString().toIntOrNull() ?: 0
+            val count = db.etEditChainCount.text.toString().toIntOrNull() ?: 0
+            if (interval !in 1..AlarmChainSpec.MAX_INTERVAL_MINUTES || count !in 1..AlarmChainSpec.MAX_COUNT) {
+                db.tvEditChainPreview.text = activity.getString(R.string.alarm_chain_preview_bad)
+                return
+            }
+            val shift = java.time.Duration.between(initial.at, picked).toMinutes()
+            val start = chain.first().at.plusMinutes(shift)
+            val times = (0 until count).joinToString(" / ") { hm(start.plusMinutes(it.toLong() * interval)) }
+            db.tvEditChainPreview.text = activity.getString(R.string.alarm_chain_preview_pattern, times, count)
+        }
+        db.etEditChainInterval.doAfterTextChanged { updateEditChainPreview() }
+        db.etEditChainCount.doAfterTextChanged { updateEditChainPreview() }
+        updateEditChainPreview()
 
         db.btnAlarmTime.text = hm(picked)
         db.etAlarmLabel.setText(existing?.label ?: "")
@@ -235,6 +259,7 @@ class AlarmCard(
                 { _, h, m ->
                     picked = LocalTime.of(h, m)
                     db.btnAlarmTime.text = hm(picked)
+                    updateEditChainPreview()
                 },
                 picked.hour,
                 picked.minute,
@@ -284,13 +309,24 @@ class AlarmCard(
                         deleteAfterRing = db.swDeleteAfterRing.isChecked,
                     )
                 } else {
-                    val saved = book.mergeEditorChanges(existing, existing.copy(
+                    val edited = existing.copy(
                         label = label,
                         timeOfDay = picked,
                         repeat = rep,
                         days = days,
                         deleteAfterRing = db.swDeleteAfterRing.isChecked,
-                    ), baseline)
+                    )
+                    val saved = if (chainSpec != null) {
+                        val interval = db.etEditChainInterval.text.toString().toIntOrNull() ?: 0
+                        val count = db.etEditChainCount.text.toString().toIntOrNull() ?: 0
+                        AlarmChainSpec(intervalMinutes = interval, count = count).validate()?.let {
+                            activity.toast(activity.getString(R.string.alarm_chain_bad, it))
+                            return@setOnClickListener
+                        }
+                        if (interval != chainSpec.intervalMinutes || count != chainSpec.count)
+                            book.resizeChainFromEditor(existing, edited, baseline, interval, count)
+                        else book.mergeEditorChanges(existing, edited, baseline)
+                    } else book.mergeEditorChanges(existing, edited, baseline)
                     if (!saved) {
                         sig = ""
                         render()

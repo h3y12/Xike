@@ -47,4 +47,25 @@ class AlarmChainEditorTest {
         assertEquals("13:00", book.find(ordinary.id)!!.timeText)
         assertEquals(baseline, baseline.map { book.find(it.id)!! })
     }
+    @Test fun resizingDisabledChainPreservesDisabledStateAndOtherGroups() {
+        val book = AlarmBook()
+        chain(book)
+        book.setChainEnabled("a", false)
+        val baseline = book.chains().single().second
+        val other = book.addChain(AlarmChainSpec(count = 2), "另一组", "b")
+        assertTrue(book.resizeChainFromEditor(baseline[1], baseline[1], baseline, 10, 5))
+        val resized = book.chains().single { it.first == "a" }.second
+        assertEquals(listOf("23:50", "00:00", "00:10", "00:20", "00:30"), resized.map { it.timeText })
+        assertTrue(resized.all { !it.enabled })
+        assertEquals(other, other.map { book.find(it.id)!! })
+    }
+
+    @Test fun oldRecordsWithoutIntervalRemainReadable() {
+        val old = "old\u000106:30\u0001起床\u00011\u0001daily\u0001\u00010\u0001group\u00011"
+        val record = AlarmStore.parse(old).single()
+        assertEquals(0, record.chainIntervalMinutes)
+        assertEquals("group", record.chain)
+        val updated = record.copy(chainIntervalMinutes = 7)
+        assertEquals(updated, AlarmStore.parse(AlarmStore.serialize(listOf(updated))).single())
+    }
 }
