@@ -47,8 +47,8 @@ android {
         applicationId = "com.hzy.timeguard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "1.2.13"
+        versionCode = 23
+        versionName = "1.2.20"
     }
 
     signingConfigs {

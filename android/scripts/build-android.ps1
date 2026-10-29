@@ -18,7 +18,9 @@ try {
     $metadata = Get-Content -LiteralPath (Join-Path $outputDir 'output-metadata.json') -Raw | ConvertFrom-Json
     if (@($metadata.elements).Count -ne 1) { throw 'Expected one universal APK.' }
     $apk = Join-Path $outputDir $metadata.elements[0].outputFile
-    $targetName = if ($Debug) { 'TimeGuard-debug.apk' } else { '息刻-安卓版.apk' }
+    $versionName = [string]$metadata.elements[0].versionName
+    if ($versionName -notmatch '^\d+\.\d+\.\d+$') { throw 'Unexpected release version.' }
+    $targetName = if ($Debug) { 'TimeGuard-debug.apk' } else { "息刻-安卓版-$versionName.apk" }
     if (-not (Test-Path -LiteralPath $apk)) { throw 'Build completed without an APK.' }
     if ([IO.Path]::GetFileName($apk) -like '*-unsigned.apk') {
         $targetName = 'TimeGuard-release-unsigned.apk'
@@ -26,6 +28,19 @@ try {
     }
     New-Item -ItemType Directory -Force -Path (Join-Path $projectRoot 'dist') | Out-Null
     Copy-Item -LiteralPath $apk -Destination (Join-Path $projectRoot "dist/$targetName") -Force
+    if (-not $Debug -and $targetName -ne 'TimeGuard-release-unsigned.apk') {
+        $dist = [IO.Path]::GetFullPath((Join-Path $projectRoot 'dist'))
+        $expected = [IO.Path]::GetFullPath($projectRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+        if (-not $dist.StartsWith($expected, [StringComparison]::OrdinalIgnoreCase)) { throw 'Dist is outside the project.' }
+        if ((Get-Item -LiteralPath $dist).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Refusing to prune a linked dist folder.' }
+        $packages = @(Get-ChildItem -LiteralPath $dist -File | Where-Object { $_.Name -match '^息刻-安卓版-\d+\.\d+\.\d+\.apk$' } |
+            Sort-Object { [version]($_.BaseName -replace '^息刻-安卓版-', '') } -Descending)
+        $packages | Select-Object -Skip 2 | ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force }
+        $lines = @($packages | Select-Object -First 2 | ForEach-Object {
+            ((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()) + '  ' + $_.Name
+        })
+        [IO.File]::WriteAllLines((Join-Path $dist 'SHA256SUMS.txt'), $lines, [Text.UTF8Encoding]::new($false))
+    }
     Write-Output 'APK ready in dist.'
 } finally {
     Pop-Location

@@ -26,6 +26,7 @@ import java.time.ZoneId
 class AlarmRingService : Service() {
     private lateinit var cfg: AppConfig
     private val ringer = AlarmRinger()
+    internal val ringOverlay by lazy { AlarmRingOverlay(this) }
     private val output by lazy { AlarmAlertSession(AlarmPlayback(this)) }
     private val handler = Handler(Looper.getMainLooper())
     private val ticker = object : Runnable {
@@ -38,6 +39,8 @@ class AlarmRingService : Service() {
     override fun onCreate() {
         super.onCreate()
         cfg = AppConfig(this)
+        activeService = this
+        ringScreenVisible = false
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (manager.getNotificationChannel(CHANNEL_ID) == null) {
             val channel = NotificationChannel(CHANNEL_ID, "闹钟", NotificationManager.IMPORTANCE_HIGH)
@@ -50,13 +53,16 @@ class AlarmRingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // System wake-up starts a foreground service; promote it before opening the audio file.
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(ringer.current, intent?.action == ACTION_FIRE),
+        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification(ringer.current, intent?.action == ACTION_FIRE || intent?.action == ACTION_COUNTDOWN),
             if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0)
         when (intent?.action) {
             ACTION_FIRE -> acceptDelivery(intent)
+            ACTION_COUNTDOWN -> CountdownScheduler.consume(this, intent, LocalDateTime.now())?.let {
+                ringer.accept(listOf(it), LocalDateTime.now(), cfg.alarmRingSeconds)
+            }
             ACTION_DISMISS -> ringer.dismissCurrent(LocalDateTime.now(), cfg.alarmRingSeconds)
             ACTION_SNOOZE -> {
-                ringer.current?.let {
+                ringer.current?.takeIf { it.alarm.canSnooze }?.let {
                     val book = cfg.loadAlarms()
                     book.snooze(it.alarm, LocalDateTime.now(), cfg.alarmSnoozeMinutes)
                     cfg.saveAlarms(book)
@@ -100,6 +106,7 @@ class AlarmRingService : Service() {
     private fun syncRing() {
         current = ringer.current
         output.sync(current, cfg.alarmVibrate)
+        refreshPresentation()
         sendBroadcast(Intent(OverlayService.ACTION_STATE_CHANGED).setPackage(packageName))
         if (current == null) {
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -109,6 +116,8 @@ class AlarmRingService : Service() {
                 .notify(NOTIFICATION_ID, notification(current))
         }
     }
+
+    private fun refreshPresentation() { ringOverlay.sync(current, ringScreenVisible) }
 
     private fun notification(state: RingingState?, incomingAlarm: Boolean = false): Notification {
         val open = PendingIntent.getActivity(this, 102, Intent(this, AlarmRingActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
@@ -120,32 +129,52 @@ class AlarmRingService : Service() {
         val icon = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
         drawable.setBounds(0, 0, 128, 128)
         drawable.draw(Canvas(icon))
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_xike).setLargeIcon(icon)
             .setContentTitle(state?.let { AlarmRinger.ringingText(it.alarm) } ?: "闹钟")
             .setContentText(state?.let { "${it.alarm.timeText} · ${it.alarm.repeatText}" } ?: "正在准备响铃")
             .setContentIntent(open).setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH).setOngoing(true).setOnlyAlertOnce(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setStyle(NotificationCompat.BigTextStyle().bigText("响铃中 · 可直接点「停止响铃」或「稍后提醒」"))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(
+                if (state == null) "正在准备响铃"
+                else if (state.alarm.canSnooze) "响铃中 · 可点「停止响铃」或「稍后提醒」"
+                else if (state.alarm.id.startsWith("countdown:")) "倒计时结束 · 可直接停止响铃"
+                else "连锁闹钟 · 停止当前响铃，后续按原定时间提醒"))
             .setFullScreenIntent(if (state != null || incomingAlarm) open else null, state != null || incomingAlarm)
             .addAction(0, getString(R.string.btn_alarm_dismiss), action(ACTION_DISMISS, 103))
-            .addAction(0, getString(R.string.btn_alarm_snooze), action(ACTION_SNOOZE, 104))
-            .build()
+        if (state?.alarm?.canSnooze == true) {
+            builder.addAction(0, getString(R.string.btn_alarm_snooze), action(ACTION_SNOOZE, 104))
+        }
+        return builder.build()
     }
 
     override fun onDestroy() {
         handler.removeCallbacks(ticker)
         output.stop()
+        ringOverlay.dismiss()
+        activeService = null
         ringer.stopAll()
         current = null
         sendBroadcast(Intent(OverlayService.ACTION_STATE_CHANGED).setPackage(packageName))
         super.onDestroy()
     }
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        ringOverlay.dismiss()
+        refreshPresentation()
+    }
     override fun onBind(intent: Intent?): IBinder? = null
 
     companion object {
         const val CHANNEL_ID = "timeguard_alarm"
+        private var activeService: AlarmRingService? = null
+        private var ringScreenVisible = false
+        fun setRingScreenVisible(visible: Boolean) {
+            ringScreenVisible = visible
+            activeService?.refreshPresentation()
+        }
+        const val ACTION_COUNTDOWN = "com.hzy.timeguard.alarm.COUNTDOWN"
         const val ACTION_FIRE = "com.hzy.timeguard.alarm.FIRE"
         const val ACTION_DISMISS = "com.hzy.timeguard.alarm.DISMISS"
         const val ACTION_SNOOZE = "com.hzy.timeguard.alarm.SNOOZE"

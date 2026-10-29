@@ -11,6 +11,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import com.hzy.timeguard.core.AlarmAlertOutput
+import com.hzy.timeguard.core.AppConfig
 
 /** Owns the looping alarm outputs independently of the notification channel. */
 class AlarmPlayback(private val context: Context) : AlarmAlertOutput {
@@ -25,7 +26,9 @@ class AlarmPlayback(private val context: Context) : AlarmAlertOutput {
         stopSound()
         val default = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         val fallback = Uri.parse("android.resource://${context.packageName}/${R.raw.alarm_fallback}")
-        for (uri in listOfNotNull(default, fallback)) {
+        val selected = AppConfig(context).alarmSoundUri.takeIf { it.isNotBlank() }?.let(Uri::parse)
+            ?.takeIf { it.scheme == "content" || it.scheme == "android.resource" }
+        for (uri in listOfNotNull(selected, default, fallback).distinct()) {
             val candidate = MediaPlayer()
             try {
                 candidate.setAudioAttributes(attributes)

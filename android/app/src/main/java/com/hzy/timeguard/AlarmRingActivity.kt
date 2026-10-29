@@ -66,17 +66,21 @@ class AlarmRingActivity : AppCompatActivity() {
     }
     override fun onStart() {
         super.onStart()
+        AlarmRingService.setRingScreenVisible(true)
         ContextCompat.registerReceiver(this, receiver, IntentFilter(OverlayService.ACTION_STATE_CHANGED), ContextCompat.RECEIVER_NOT_EXPORTED)
         refresh()
     }
     override fun onStop() {
         unregisterReceiver(receiver)
         super.onStop()
+        AlarmRingService.setRingScreenVisible(false)
     }
     private fun refresh() {
         val state = AlarmRingService.current
         if (state == null) { finish(); return }
         title.text = AlarmRinger.ringingText(state.alarm)
         time.text = state.alarm.timeText
+        findViewById<Button>(R.id.btnAlarmSnooze).visibility =
+            if (state.alarm.canSnooze) android.view.View.VISIBLE else android.view.View.GONE
     }
 }

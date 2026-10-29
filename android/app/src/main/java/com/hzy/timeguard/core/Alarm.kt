@@ -54,6 +54,9 @@ data class Alarm(
     /** 保存单成员连锁组的间隔；0 表示旧数据，由相邻成员推断。 */
     val chainIntervalMinutes: Int = 0,
 ) {
+    /** 连锁本身已经安排后续提醒，包括最后一个成员也不再额外延迟。 */
+    val canSnooze: Boolean get() = chainId.isEmpty()
+
     /** 截到分的钟点。 */
     val at: LocalTime get() = timeOfDay.withSecond(0).withNano(0)
 
@@ -427,8 +430,9 @@ class AlarmBook {
         }
     }
 
-    /** 「稍后提醒」：把当前这个推迟 [minutes] 分钟再响，其余不动。 */
+    /** 普通闹钟的「稍后提醒」；连锁成员不再额外生成延迟闹钟。 */
     fun snooze(a: Alarm, now: LocalDateTime, minutes: Int): String {
+        if (!a.canSnooze) return "连锁闹钟按原定间隔提醒，无需稍后提醒。"
         val m = if (minutes < 1) 1 else minutes
         firedAt[a.id] = now
 

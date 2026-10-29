@@ -116,6 +116,14 @@ class ManualCountdown {
         phase = CdPhase.Running
     }
 
+    /** Use the exact next occurrence, including a weekly alarm several days away. */
+    fun startUntil(target: LocalDateTime) {
+        plan = CdPlan(CdMode.ClockTime, clockTarget = target.toLocalTime(), label = "到 " + hm(target) + " 为止")
+        deadline = target
+        pausedRemaining = Duration.ZERO
+        phase = CdPhase.Running
+    }
+
     /** 到点后点「再来」：时刻模式顺延到下一个同一时刻，时长模式重新计满一轮。 */
     fun restart(now: LocalDateTime) {
         val p = plan ?: return

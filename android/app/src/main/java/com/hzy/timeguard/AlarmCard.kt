@@ -86,6 +86,7 @@ class AlarmCard(
     fun render() {
         book = cfg.loadAlarms()
         b.alarmRingControls.visibility = if (AlarmRingService.isRinging) View.VISIBLE else View.GONE
+        b.btnAlarmSnooze.visibility = if (AlarmRingService.current?.alarm?.canSnooze == true) View.VISIBLE else View.GONE
         val s = signature()
         if (s != sig) {
             rebuildList()

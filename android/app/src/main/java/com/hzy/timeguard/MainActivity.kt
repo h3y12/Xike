@@ -14,6 +14,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     private var cdView = ManualCountdown()
 
     /** 闹钟那张卡的全部逻辑在这个类里（列表、增删改、连锁起床闹钟）。 */
+    private lateinit var alarmSoundPicker: AlarmSoundPicker
     private lateinit var alarmCard: AlarmCard
 
     private val ticker = object : Runnable {
@@ -98,9 +103,81 @@ class MainActivity : AppCompatActivity() {
 
         alarmCard = AlarmCard(this, b, cfg) { updatePermissionUi() }
         alarmCard.attach()
+        alarmSoundPicker = AlarmSoundPicker(this, b.btnAlarmSound, cfg)
 
         bindEvents()
         loadToUi()
+        bindSections()
+    }
+
+    private data class Section(val header: TextView, val content: View, val initiallyExpanded: Boolean = false)
+    private var sections = emptyList<Section>()
+    private var sectionsMenuItem: MenuItem? = null
+    private fun settingsSections() = sections.filter { it.content.id != R.id.sectionUsageContent }
+
+    private fun updateSectionsMenuTitle(item: MenuItem? = sectionsMenuItem) {
+        val settings = settingsSections()
+        item?.setTitle(if (settings.isNotEmpty() && settings.all { it.content.visibility == View.VISIBLE })
+            R.string.collapse_all_sections else R.string.expand_all_sections)
+    }
+    private val sectionPrefs by lazy { getSharedPreferences("settings_sections", Context.MODE_PRIVATE) }
+
+    private fun bindSections() {
+        sections = listOf(
+            Section(b.sectionUsageHeader, b.sectionUsageContent),
+            Section(b.sectionCountdownHeader, b.sectionCountdownContent),
+            Section(b.sectionAlarmHeader, b.sectionAlarmContent, initiallyExpanded = true),
+            Section(b.sectionScheduleHeader, b.sectionScheduleContent),
+            Section(b.sectionRateHeader, b.sectionRateContent),
+            Section(b.sectionTextHeader, b.sectionTextContent),
+            Section(b.sectionLookHeader, b.sectionLookContent),
+        )
+        sections.forEach { section ->
+            val key = resources.getResourceEntryName(section.content.id)
+            setSectionExpanded(section, sectionPrefs.getBoolean(key, section.initiallyExpanded))
+            androidx.core.view.ViewCompat.setAccessibilityHeading(section.header, true)
+            section.header.setOnClickListener {
+                setSectionExpanded(section, section.content.visibility != View.VISIBLE)
+                invalidateOptionsMenu()
+            }
+        }
+    }
+
+    private fun setSectionExpanded(section: Section, expanded: Boolean) {
+        if (!expanded) section.content.findFocus()?.let { focused ->
+            focused.clearFocus()
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager)
+                .hideSoftInputFromWindow(focused.windowToken, 0)
+        }
+        section.content.visibility = if (expanded) View.VISIBLE else View.GONE
+        section.header.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0,
+            if (expanded) R.drawable.ic_section_up else R.drawable.ic_section_down, 0)
+        androidx.core.view.ViewCompat.setStateDescription(section.header,
+            getString(if (expanded) R.string.section_expanded else R.string.section_collapsed))
+        sectionPrefs.edit().putBoolean(resources.getResourceEntryName(section.content.id), expanded).apply()
+        updateSectionsMenuTitle()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_settings, menu)
+        sectionsMenuItem = menu.findItem(R.id.actionToggleSections)
+        updateSectionsMenuTitle()
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        updateSectionsMenuTitle(menu.findItem(R.id.actionToggleSections))
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId != R.id.actionToggleSections) return super.onOptionsItemSelected(item)
+        val settings = settingsSections()
+        val expanded = settings.any { it.content.visibility != View.VISIBLE }
+        settings.forEach { setSectionExpanded(it, expanded) }
+        updateSectionsMenuTitle(item)
+        invalidateOptionsMenu()
+        return true
     }
 
     override fun onResume() {
@@ -112,6 +189,7 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
         AlarmScheduler.schedule(this)
+        CountdownScheduler.schedule(this)
         updatePermissionUi()
         updateOverlayButton()
         handler.removeCallbacks(ticker)
@@ -204,23 +282,50 @@ class MainActivity : AppCompatActivity() {
             val text = b.etCdInput.text.toString()
             cfg.cdInputText = text
             if (!ensureServiceForCd()) return@setOnClickListener
-            // 服务刚被拉起时 onStartCommand 要晚一步才跑，延迟发命令免得命令先到、服务还没建好
-            b.root.postDelayed({ startTimeGuardCountdown(text) }, 350L)
+            // Android creates the service before delivering its ordered start commands.
+            startTimeGuardCountdown(text)
         }
 
         b.btnCdToggle.setOnClickListener {
             if (!ensureServiceForCd()) return@setOnClickListener
-            b.root.postDelayed({ toggleTimeGuardCountdownPause() }, 120L)
+            toggleTimeGuardCountdownPause()
         }
 
         b.btnCdReset.setOnClickListener {
             if (!ensureServiceForCd()) return@setOnClickListener
-            b.root.postDelayed({ resetTimeGuardCountdown() }, 120L)
+            resetTimeGuardCountdown()
+        }
+
+        b.swCdRing.isChecked = cfg.cdRingEnabled
+        b.swCdRing.setOnCheckedChangeListener { _, enabled ->
+            cfg.cdRingEnabled = enabled
+            if (enabled && cfg.cdSessionId.isEmpty()) cfg.cdSessionId = java.util.UUID.randomUUID().toString()
+            CountdownScheduler.schedule(this)
+            if (enabled) askNotificationPermissionIfNeeded()
+            updatePermissionUi()
+        }
+        b.btnCdFromAlarm.setOnClickListener {
+            val now = LocalDateTime.now()
+            val choices = cfg.loadAlarms().all.mapNotNull { alarm -> alarm.nextRingAfter(now)?.let { alarm to it } }
+                .sortedBy { it.second }
+            if (choices.isEmpty()) { toast(getString(R.string.cd_no_alarms)); return@setOnClickListener }
+            androidx.appcompat.app.AlertDialog.Builder(this).setTitle(R.string.cd_from_alarm)
+                .setItems(choices.map { (alarm, at) ->
+                    "${alarm.label.ifBlank { "闹钟" }} · ${at.toLocalDate()} ${alarm.timeText}"
+                }.toTypedArray()) { _, which ->
+                    if (ensureServiceForCd()) {
+                        val alarm = choices[which].first
+                        b.etCdInput.setText(alarm.timeText)
+                        ContextCompat.startForegroundService(this, Intent(this, OverlayService::class.java)
+                            .setAction(OverlayService.ACTION_CD_FROM_ALARM).putExtra(OverlayService.EXTRA_ALARM_ID, alarm.id))
+                    }
+                }.setNegativeButton(R.string.btn_cancel, null).show()
         }
 
         b.btnToggleOverlay.setOnClickListener {
             if (OverlayService.isRunning) {
-                stopTimeGuardOverlay()
+                ContextCompat.startForegroundService(this, Intent(this, OverlayService::class.java)
+                    .setAction(OverlayService.ACTION_TOGGLE_OVERLAY))
                 b.root.postDelayed({ updateOverlayButton() }, 400L)
             } else {
                 if (!Settings.canDrawOverlays(this)) {
@@ -469,7 +574,8 @@ class MainActivity : AppCompatActivity() {
         b.btnGrantOverlay.visibility = b.tvPermOverlay.visibility
         b.tvPermNotification.visibility = if (notifOk) android.view.View.GONE else android.view.View.VISIBLE
         b.btnGrantNotification.visibility = b.tvPermNotification.visibility
-        val hasAlarms = cfg.loadAlarms().all.any { it.enabled }
+        val hasAlarms = cfg.loadAlarms().all.any { it.enabled } ||
+            (cfg.cdRingEnabled && cfg.cdSourceAlarmId.isEmpty() && cfg.loadCountdown().phase == CdPhase.Running.name)
         val alarmOk = AlarmScheduler.canSchedule(this) || !hasAlarms
         val fullscreenOk = !hasAlarms || Build.VERSION.SDK_INT < 34 ||
             (getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager).canUseFullScreenIntent()
@@ -551,7 +657,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateOverlayButton() {
         b.btnToggleOverlay.text =
-            if (OverlayService.isRunning) getString(R.string.btn_stop_overlay)
+            if (OverlayService.isRunning && cfg.overlayVisible) getString(R.string.btn_stop_overlay)
             else getString(R.string.btn_start_overlay)
     }
 

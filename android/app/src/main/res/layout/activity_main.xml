@@ -103,6 +103,54 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/card_bg">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
+                <TextView
+                    android:id="@+id/sectionUsageHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
+                    android:text="@string/card_usage"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/tvUsageSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:text="@string/usage_summary"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+                <TextView
+                    android:id="@+id/sectionUsageContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="12dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="@string/usage_details"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- ============ 手动倒计时（与健康分无关，独立一块） ============ -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -116,94 +164,128 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionCountdownHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_countdown"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/sectionCountdownContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/tvCdPreview"
-                        android:layout_width="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:minWidth="130dp"
-                        android:includeFontPadding="false"
-                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvCdPreview"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="130dp"
+                            android:includeFontPadding="false"
+                            android:fontFamily="sans-serif-medium"
+                            android:textColor="@color/text_primary"
+                            android:textSize="30sp"
+                            tools:text="00:14:59" />
+
+                        <TextView
+                            android:id="@+id/tvCdStatus"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            tools:text="到 23:45 结束" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.AppCompatEditText
                         android:textColor="@color/text_primary"
-                        android:textSize="30sp"
-                        tools:text="00:14:59" />
+                        android:textColorHint="@color/text_secondary"
+                        android:id="@+id/etCdInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:hint="@string/hint_cd_input"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:textSize="15sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnCdStart"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/btn_cd_start" />
+
+                        <Button
+                            android:id="@+id/btnCdToggle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:text="@string/btn_cd_pause" />
+
+                        <Button
+                            android:id="@+id/btnCdReset"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:text="@string/btn_cd_reset" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnCdFromAlarm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cd_from_alarm" />
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swCdRing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cd_ring_enabled"
+                        android:textColor="@color/text_primary" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cd_ring_hint"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary" />
 
                     <TextView
-                        android:id="@+id/tvCdStatus"
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_cd_hint"
                         android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        tools:text="到 23:45 结束" />
+                        android:textSize="11sp" />
                 </LinearLayout>
-
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:id="@+id/etCdInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:hint="@string/hint_cd_input"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textSize="15sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnCdStart"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/btn_cd_start" />
-
-                    <Button
-                        android:id="@+id/btnCdToggle"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_cd_pause" />
-
-                    <Button
-                        android:id="@+id/btnCdReset"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_cd_reset" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_cd_hint"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -223,24 +305,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionAlarmHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_alarm"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvAlarmHint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/alarm_hint"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
 
                 <LinearLayout android:id="@+id/alarmRingControls" android:layout_width="match_parent"
                     android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
@@ -250,100 +331,139 @@
                         android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/btn_alarm_snooze" />
                 </LinearLayout>
 
-                <!-- 闹钟方块列表：由代码按时间顺序填 -->
                 <LinearLayout
-                    android:id="@+id/llAlarmList"
+                    android:id="@+id/sectionAlarmContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:orientation="vertical" />
-
-                <TextView
-                    android:id="@+id/tvAlarmEmpty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/alarm_empty"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnAlarmAdd"
-                        android:layout_width="0dp"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="visible">
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/btn_alarm_add" />
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/btnAlarmChain"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_alarm_chain" />
-                </LinearLayout>
+                        <Button
+                            android:id="@+id/btnAlarmAdd"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/btn_alarm_add" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/btnAlarmChain"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="6dp"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:text="@string/btn_alarm_chain" />
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:id="@+id/tvAlarmHint"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/label_alarm_ring_seconds"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/alarm_hint"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+
+
+                    <!-- 闹钟方块列表：由代码按时间顺序填 -->
+                    <LinearLayout
+                        android:id="@+id/llAlarmList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvAlarmEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/alarm_empty"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_alarm_ring_seconds"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.AppCompatEditText
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                            android:id="@+id/etAlarmRingSeconds"
+                            android:layout_width="64dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:textSize="15sp"
+                            tools:text="30" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="@string/unit_seconds"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnAlarmSound"
+                        style="?attr/borderlessButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="start|center_vertical"
+                        android:text="@string/alarm_sound_title"
+                        android:textAllCaps="false" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/alarm_sound_hint"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swAlarmVibrate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_alarm_vibrate"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp" />
 
-                    <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                        android:id="@+id/etAlarmRingSeconds"
-                        android:layout_width="64dp"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:textSize="15sp"
-                        tools:text="30" />
-
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="@string/unit_seconds"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/label_alarm_note"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                    <Button android:id="@+id/btnBackgroundHelp" style="?attr/borderlessButtonStyle"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/btn_background_help" />
                 </LinearLayout>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/swAlarmVibrate"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_alarm_vibrate"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/label_alarm_note"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
-                <Button android:id="@+id/btnBackgroundHelp" style="?attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="@string/btn_background_help" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -437,100 +557,116 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionScheduleHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_schedule"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/sectionScheduleContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_show_at"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <Button
+                            android:id="@+id/btnShowAt"
+                            style="?attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="88dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textSize="16sp"
+                            tools:text="20:30" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_deduct_at"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <Button
+                            android:id="@+id/btnDeductAt"
+                            style="?attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="88dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textSize="16sp"
+                            tools:text="23:30" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/label_hide_at"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <Button
+                            android:id="@+id/btnHideAt"
+                            style="?attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="88dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:textSize="16sp"
+                            tools:text="06:30" />
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:id="@+id/tvRulesPreview"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/label_show_at"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <Button
-                        android:id="@+id/btnShowAt"
-                        style="?attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="88dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"
-                        tools:text="20:30" />
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        tools:text="20:30 出现 100 分 → 23:30 起每 3 分钟扣 1 分 → 06:30 隐藏" />
                 </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/label_deduct_at"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <Button
-                        android:id="@+id/btnDeductAt"
-                        style="?attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="88dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"
-                        tools:text="23:30" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/label_hide_at"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <Button
-                        android:id="@+id/btnHideAt"
-                        style="?attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:minWidth="88dp"
-                        android:fontFamily="sans-serif-medium"
-                        android:textSize="16sp"
-                        tools:text="06:30" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvRulesPreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"
-                    tools:text="20:30 出现 100 分 → 23:30 起每 3 分钟扣 1 分 → 06:30 隐藏" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -547,84 +683,100 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionRateHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_rate"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/sectionRateContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_per_minutes"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_per_minutes"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.AppCompatEditText
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:textColorHint="@color/text_secondary"
+                            android:id="@+id/etMinutes"
+                            android:layout_width="58dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:textSize="15sp"
+                            tools:text="3" />
 
-                    <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                        android:id="@+id/etMinutes"
-                        android:layout_width="58dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:gravity="center"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:textSize="15sp"
-                        tools:text="3" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/label_minutes_unit"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/label_minutes_unit"
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_deduct"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <androidx.appcompat.widget.AppCompatEditText
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        android:textColorHint="@color/text_secondary"
+                            android:id="@+id/etPoints"
+                            android:layout_width="58dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:maxLength="3"
+                            android:textSize="15sp"
+                            tools:text="1" />
 
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_deduct"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                        android:id="@+id/etPoints"
-                        android:layout_width="58dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:gravity="center"
-                        android:inputType="number"
-                        android:maxLength="3"
-                        android:textSize="15sp"
-                        tools:text="1" />
-
-                    <TextView
-                        android:id="@+id/tvPointsUnit"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/label_points_unit"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
+                        <TextView
+                            android:id="@+id/tvPointsUnit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/label_points_unit"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -642,87 +794,103 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionTextHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_text"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/sectionTextContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_status_before"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="gone">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_status_before"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
 
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:id="@+id/etStatusBefore"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textSize="14sp"
-                    tools:text="夜深了，注意休息~" />
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:id="@+id/etStatusBefore"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textSize="14sp"
+                        tools:text="夜深了，注意休息~" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_status_high"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_status_high"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
 
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:id="@+id/etStatusHigh"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textSize="14sp"
-                    tools:text="快去睡吧。" />
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:id="@+id/etStatusHigh"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textSize="14sp"
+                        tools:text="快去睡吧。" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_status_mid"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_status_mid"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
 
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:id="@+id/etStatusMid"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textSize="14sp"
-                    tools:text="头发要紧，睡觉！" />
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:id="@+id/etStatusMid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textSize="14sp"
+                        tools:text="头发要紧，睡觉！" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_status_low"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_status_low"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
 
-                <androidx.appcompat.widget.AppCompatEditText
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary"
-                    android:id="@+id/etStatusLow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textSize="14sp"
-                    tools:text="不睡等死吧你！！！" />
+                    <androidx.appcompat.widget.AppCompatEditText
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_secondary"
+                        android:id="@+id/etStatusLow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textSize="14sp"
+                        tools:text="不睡等死吧你！！！" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -739,96 +907,112 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/sectionLookHeader"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:drawablePadding="12dp"
                     android:text="@string/card_look"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/sectionLookContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="12dp"
+                    android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_opacity"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_opacity"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <SeekBar
+                            android:id="@+id/sbOpacity"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:max="100"
+                            android:min="20" />
+
+                        <TextView
+                            android:id="@+id/tvOpacityValue"
+                            android:layout_width="46dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="13sp"
+                            tools:text="88%" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swThrough"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/label_through"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp" />
 
-                    <SeekBar
-                        android:id="@+id/sbOpacity"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:max="100"
-                        android:min="20" />
+                        android:text="@string/label_through_hint"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swShowScore"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/label_show_score"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swShowCountdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_show_countdown"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/swNotifyToggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/label_notify_toggle"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <TextView
-                        android:id="@+id/tvOpacityValue"
-                        android:layout_width="46dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="end"
+                        android:text="@string/label_notify_toggle_hint"
                         android:textColor="@color/text_secondary"
-                        android:textSize="13sp"
-                        tools:text="88%" />
+                        android:textSize="11sp" />
                 </LinearLayout>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/swThrough"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/label_through"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_through_hint"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/swShowScore"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/label_show_score"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/swShowCountdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_show_countdown"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/swNotifyToggle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/label_notify_toggle"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_notify_toggle_hint"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

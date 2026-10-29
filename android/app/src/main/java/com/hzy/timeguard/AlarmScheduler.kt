@@ -58,5 +58,8 @@ object AlarmScheduler {
 
 /** Restore system registrations after reboot, clock changes, updates, or permission grant. */
 class AlarmRescheduleReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) { AlarmScheduler.schedule(context) }
+    override fun onReceive(context: Context, intent: Intent) {
+        AlarmScheduler.schedule(context)
+        CountdownScheduler.schedule(context)
+    }
 }

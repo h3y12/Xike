@@ -1,0 +1,5 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/actionToggleSections"
+        android:title="@string/expand_all_sections" app:showAsAction="always" />
+</menu>

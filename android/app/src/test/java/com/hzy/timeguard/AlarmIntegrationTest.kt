@@ -214,4 +214,78 @@ class AlarmIntegrationTest {
         assertTrue(AlarmScheduler.schedule(app))
         activity.pause().stop().destroy()
     }
+
+    @Test fun chainMembersIncludingTheLastCannotBeSnoozedFromAnySurface() {
+        for ((count, daily) in listOf(3 to true, 1 to true, 3 to false, 1 to false)) {
+            app.getSharedPreferences("timeguard", Context.MODE_PRIVATE).edit().clear().commit()
+            val now = LocalDateTime.now().withSecond(0).withNano(0)
+            val book = AlarmBook()
+            val members = book.addChain(AlarmChainSpec(startAt = now.toLocalTime(), count = count, intervalMinutes = 5, daily = daily), "连锁", "chain")
+            AppConfig(app).saveAlarms(book)
+            val intent = Intent(app, AlarmRingService::class.java).setAction(AlarmRingService.ACTION_FIRE)
+                .putExtra(AlarmRingService.EXTRA_DUE_AT, now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                .putStringArrayListExtra(AlarmRingService.EXTRA_IDS, arrayListOf(members.first().id))
+            val ring = Robolectric.buildService(AlarmRingService::class.java, intent).create()
+            ring.get().onStartCommand(intent, 0, 1)
+            val home = Robolectric.buildActivity(MainActivity::class.java).setup()
+            val screen = Robolectric.buildActivity(AlarmRingActivity::class.java).setup()
+            try {
+                assertEquals(View.GONE, home.get().findViewById<View>(R.id.btnAlarmSnooze).visibility)
+                assertEquals(View.GONE, screen.get().findViewById<View>(R.id.btnAlarmSnooze).visibility)
+                val notification = shadowOf(app.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                    .getNotification(AlarmRingService.NOTIFICATION_ID)
+                assertEquals(1, notification.actions.size)
+                assertEquals("停止响铃", notification.actions.single().title.toString())
+                val remaining = AppConfig(app).alarmRecords
+                // A stale notification or queued command must not create a detached one-shot.
+                ring.get().onStartCommand(Intent(app, AlarmRingService::class.java).setAction(AlarmRingService.ACTION_SNOOZE), 0, 2)
+                assertTrue(AlarmRingService.isRinging)
+                assertEquals(remaining, AppConfig(app).alarmRecords)
+                ring.get().onStartCommand(Intent(app, AlarmRingService::class.java).setAction(AlarmRingService.ACTION_DISMISS), 0, 3)
+                assertFalse(AlarmRingService.isRinging)
+                assertEquals(if (daily) count else count - 1, AppConfig(app).loadAlarms().size)
+                assertTrue(AppConfig(app).loadAlarms().all.all { it.enabled && it.chainId == "chain" })
+            } finally {
+                screen.pause().stop().destroy()
+                home.pause().stop().destroy()
+                ring.destroy()
+            }
+        }
+    }
+
+
+    @Test fun overlayControlsStopTheAlarmWhenTheFullScreenActivityNeverOpens() {
+        val ring = fire()
+        try {
+            val view = ring.get().ringOverlay.view
+            assertNotNull(view)
+            view!!.findViewById<Button>(R.id.btnAlarmDismiss).performClick()
+            val command = shadowOf(app).nextStartedService
+            assertEquals(AlarmRingService.ACTION_DISMISS, command.action)
+            ring.get().onStartCommand(command, 0, 2)
+            assertStopped()
+            assertNull(ring.get().ringOverlay.view)
+        } finally { ring.destroy() }
+    }
+    @Test fun ringingOverlayHidesForFullPageAndReturnsWhenThePageLeaves() {
+        val ring = fire()
+        val screen = Robolectric.buildActivity(AlarmRingActivity::class.java).setup()
+        try {
+            assertNull(ring.get().ringOverlay.view)
+            screen.pause().stop()
+            assertNotNull(ring.get().ringOverlay.view)
+            screen.start().resume()
+            assertNull(ring.get().ringOverlay.view)
+        } finally { screen.pause().stop().destroy(); ring.destroy() }
+    }
+    @Test fun noOverlayPermissionKeepsWorkingNotificationControls() {
+        ShadowSettings.setCanDrawOverlays(false)
+        val ring = fire()
+        try {
+            assertNull(ring.get().ringOverlay.view)
+            assertTrue(AlarmRingService.isRinging)
+            assertNotNull(shadowOf(app.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                .getNotification(AlarmRingService.NOTIFICATION_ID).contentIntent)
+        } finally { ring.destroy() }
+    }
 }

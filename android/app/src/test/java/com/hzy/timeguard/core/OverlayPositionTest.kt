@@ -37,4 +37,12 @@ class OverlayPositionTest {
         assertEquals(OverlayPosition(8, 8),
             OverlayPosition.fit(500, 500, 180, 240, 0, 0, 100, 100, 8))
     }
+
+    @Test fun zeroTopMarginLetsLandscapeOverlayReachTheUsableTop() {
+        val fullscreen = OverlayPosition.fit(300, -500, 180, 120, 0, 0, 2300, 1080, 8, topMargin = 0)
+        assertEquals(0, fullscreen.y)
+        val statusBarVisible = OverlayPosition.fit(300, -500, 180, 120, 0, 24, 2300, 1080, 8, topMargin = 0)
+        assertEquals(24, statusBarVisible.y)
+        assertEquals(OverlayPosition(8, 0), OverlayPosition.fit(-500, -500, 180, 120, 0, 0, 2300, 1080, 8, topMargin = 0))
+    }
 }

@@ -6,9 +6,10 @@ data class OverlayPosition(val x: Int, val y: Int) {
         fun fit(
             x: Int, y: Int, width: Int, height: Int,
             left: Int, top: Int, right: Int, bottom: Int, margin: Int,
+            topMargin: Int = margin,
         ): OverlayPosition {
             val minX = left + margin
-            val minY = top + margin
+            val minY = top + topMargin
             val maxX = (right - width - margin).coerceAtLeast(minX)
             val maxY = (bottom - height - margin).coerceAtLeast(minY)
             val initial = x == -1 && y == -1

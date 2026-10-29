@@ -22,7 +22,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.view.WindowInsets
 import com.hzy.timeguard.core.OverlayPosition
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -132,6 +131,23 @@ class OverlayService : Service() {
         }
 
         when (intent?.action) {
+            ACTION_START -> cfg.overlayVisible = true
+            ACTION_TOGGLE_OVERLAY -> {
+                cfg.overlayVisible = !cfg.overlayVisible
+                broadcastStateChanged()
+            }
+            ACTION_CD_FROM_ALARM -> {
+                val alarm = cfg.loadAlarms().find(intent.getStringExtra(EXTRA_ALARM_ID).orEmpty())
+                val next = alarm?.nextRingAfter(LocalDateTime.now())
+                if (alarm != null && next != null) {
+                    cfg.cdSourceAlarmId = alarm.id
+                    cfg.cdSessionId = java.util.UUID.randomUUID().toString()
+                    cfg.cdInputText = alarm.timeText
+                    cd.startUntil(next)
+                    persistCd()
+                    broadcastCdResult(null)
+                } else broadcastCdResult("该闹钟已关闭或删除，请重新选择")
+            }
             ACTION_STOP -> {
                 cfg.wantRunning = false
                 stopSelf()
@@ -154,6 +170,8 @@ class OverlayService : Service() {
                 cfg.cdInputText = text
                 when (val r = ManualCountdown.tryParse(text, LocalDateTime.now())) {
                     is CdParse.Ok -> {
+                        cfg.cdSourceAlarmId = ""
+                        cfg.cdSessionId = java.util.UUID.randomUUID().toString()
                         cd.start(r.plan, LocalDateTime.now())
                         persistCd()
                         broadcastCdResult(null)
@@ -170,6 +188,7 @@ class OverlayService : Service() {
             }
 
             ACTION_CD_RESET -> {
+                cfg.cdSourceAlarmId = ""
                 cd.reset()
                 persistCd()
             }
@@ -182,6 +201,7 @@ class OverlayService : Service() {
         }
 
         cfg.wantRunning = true
+        CountdownScheduler.schedule(this)
         applyAppearance()
 
         handler.removeCallbacks(ticker)
@@ -230,10 +250,12 @@ class OverlayService : Service() {
     private fun persistCd() {
         lastCdPhase = cd.phase
         cfg.saveCountdown(cd.snapshot())
+        CountdownScheduler.schedule(this)
         broadcastStateChanged()
     }
 
     private fun render(state: ScoreState, rules: SleepRules, cdState: CdState) {
+        if (!cfg.overlayVisible) { detachOverlay(); return }
         val daytime = state.phase == NightPhase.Daytime
 
         // ---- 可见性：照抄桌面版 MainWindow 的两行判断 ----
@@ -294,6 +316,11 @@ class OverlayService : Service() {
         // 穿透状态下淡一层，提醒「现在点不到我」；和 applyThrough 保持一致
         b.root.alpha = if (cfg.clickThrough) THROUGH_ALPHA else 1.0f
         b.root.setOnTouchListener { v, e -> onOverlayTouch(v, e) }
+        b.root.setOnApplyWindowInsetsListener { _, insets ->
+            // Re-evaluate when a fullscreen app hides or restores the system bars.
+            b.root.post { keepOverlayOnScreen(b, params) }
+            insets
+        }
         b.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             keepOverlayOnScreen(b, params)
         }
@@ -328,6 +355,11 @@ class OverlayService : Service() {
             PixelFormat.TRANSLUCENT,
         )
         p.gravity = Gravity.TOP or Gravity.START
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // x/y and our bounds use the full display origin; apply system insets only once.
+            p.setFitInsetsTypes(0)
+            p.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        }
         p.alpha = windowOpacity()
         return p
     }
@@ -446,14 +478,8 @@ class OverlayService : Service() {
 
         val screen = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val metrics = wm.currentWindowMetrics
-            val insets = metrics.windowInsets.getInsetsIgnoringVisibility(
-                WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout(),
-            )
-            android.graphics.Rect(
-                insets.left, insets.top,
-                metrics.bounds.width() - insets.right,
-                metrics.bounds.height() - insets.bottom,
-            )
+            // Root-view insets are relative to the small floating window, not the whole display.
+            OverlayViewport.usableBounds(metrics.bounds.width(), metrics.bounds.height(), metrics.windowInsets)
         } else {
             @Suppress("DEPRECATION")
             val metrics = android.util.DisplayMetrics().also { wm.defaultDisplay.getMetrics(it) }
@@ -461,6 +487,7 @@ class OverlayService : Service() {
         }
         val position = OverlayPosition.fit(
             p.x, p.y, w, h, screen.left, screen.top, screen.right, screen.bottom, dp(8),
+            topMargin = 0,
         )
         val changed = p.x != position.x || p.y != position.y
         p.x = position.x
@@ -535,7 +562,7 @@ class OverlayService : Service() {
 
         // 去重签名必须包含**正文以外的可变状态**：通知上的动作按钮文案取决于
         // notifyToggle / clickThrough，只比正文的话，用户切换穿透后按钮文字不会更新。
-        val signature = text + "|" + cfg.notifyToggle + "|" + cfg.clickThrough
+        val signature = text + "|" + cfg.notifyToggle + "|" + cfg.clickThrough + "|" + cfg.overlayVisible
 
         // 只在内容真的变化时重建通知，避免每秒刷一次引起闪烁
         if (signature == lastNotifSignature) return
@@ -585,12 +612,17 @@ class OverlayService : Service() {
             )
         }
 
+        val visibility = PendingIntent.getService(this, 3,
+            Intent(this, OverlayService::class.java).setAction(ACTION_TOGGLE_OVERLAY),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        builder.addAction(0, if (cfg.overlayVisible) "关闭悬浮窗" else "开启悬浮窗", visibility)
+
         val stop = PendingIntent.getService(
             this, 2,
             Intent(this, OverlayService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        builder.addAction(0, "关闭悬浮窗", stop)
+        builder.addAction(0, "退出后台服务", stop)
 
         return builder.build()
     }
@@ -623,6 +655,9 @@ class OverlayService : Service() {
     // ---------------------------------------------------------------- 对外入口
 
     companion object {
+        const val ACTION_TOGGLE_OVERLAY = "com.hzy.timeguard.action.TOGGLE_OVERLAY"
+        const val ACTION_CD_FROM_ALARM = "com.hzy.timeguard.action.CD_FROM_ALARM"
+        const val EXTRA_ALARM_ID = "sourceAlarmId"
         const val ACTION_START = "com.hzy.timeguard.action.START"
         const val ACTION_STOP = "com.hzy.timeguard.action.STOP"
         const val ACTION_TOGGLE_THROUGH = "com.hzy.timeguard.action.TOGGLE_THROUGH"

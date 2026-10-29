@@ -565,4 +565,16 @@ class AlarmTest {
     // ---- 小工具 ----
 
     private fun alarmAt(h: Int, m: Int) = Alarm("x", timeOfDay = LocalTime.of(h, m))
+
+    @Test fun snoozingAChainDoesNotChangeTheBookOrAddAnAlarm() {
+        val book = AlarmBook()
+        val members = book.addChain(AlarmChainSpec(startAt = LocalTime.of(7, 0), count = 3), "连锁", "chain")
+        val before = book.all.toList()
+        members.forEach { member ->
+            assertFalse(member.canSnooze)
+            book.snooze(member, LocalDateTime.of(2026, 10, 23, 7, 0), 5)
+            assertEquals(before, book.all)
+        }
+    }
+
 }

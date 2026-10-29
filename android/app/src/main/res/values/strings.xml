@@ -67,7 +67,7 @@
     <string name="label_alarm_ring_seconds">响铃持续</string>
     <string name="unit_seconds">秒</string>
     <string name="label_alarm_vibrate">响铃时震动</string>
-    <string name="label_alarm_note">铃声使用系统闹钟音量；在 App 或响铃界面按音量键可调整。闹钟独立运行，关闭悬浮窗不会取消。响铃时可在通知或这里点「停止响铃 / 稍后提醒」。一次性闹钟在触发时删除；选择保留时则自动关闭。</string>
+    <string name="label_alarm_note">铃声使用系统闹钟音量；在 App 或响铃界面按音量键可调整。关闭悬浮窗不会删除已设闹钟；部分手机可能限制后台提醒，建议保持悬浮窗开启。普通闹钟可停止或稍后提醒；连锁闹钟仅停止当前响铃，后续按原定间隔提醒。一次性闹钟在触发时删除；选择保留时则自动关闭。</string>
 
     <string name="alarm_dialog_title">闹钟</string>
     <string name="alarm_dialog_chain_title">连锁起床闹钟</string>
@@ -102,7 +102,7 @@
     <string name="alarm_edit_chain_title">修改整组连锁闹钟</string>
     <string name="alarm_chain_label">起床</string>
     <string name="alarm_chain_preview_bad">间隔 1–120 分钟、次数 1–12 次</string>
-    <string name="alarm_chain_note">响铃时停止当前闹钟，后续仍按各自时间提醒；App 内修改、开关与删除作用于整组；修改时间会保留各成员间隔。</string>
+    <string name="alarm_chain_note">连锁响铃仅可停止当前闹钟，不提供稍后提醒，后续仍按各自时间提醒；App 内修改、开关与删除作用于整组；修改时间会保留各成员间隔。</string>
     <string name="alarm_chain_preview_pattern">将生成 %1$s 共 %2$d 个闹钟</string>
     <string name="alarm_chain_bad">间隔或次数不合规：%1$s</string>
     <string name="alarm_saved">已保存</string>
@@ -121,6 +121,27 @@
     <string name="perm_battery_missing">后台运行仍受电池优化限制，可能影响夜间提醒。请在电池设置中将息刻设为不受限制。</string>
     <string name="btn_grant_battery">打开电池优化设置</string>
     <string name="btn_background_help">iQOO / vivo 后台提醒设置</string>
-    <string name="background_help">请在系统设置中为息刻开启：\n\n1. 应用与权限 → 权限管理 → 自启动。\n2. 电池 → 后台耗电管理（或后台高耗电）→ 允许后台运行。\n\n菜单名称会随 OriginOS 版本变化，可搜索“自启动”和“后台耗电”。这些厂商开关无法由应用准确检测，所以这里不会显示“已授权”。\n\n设置后，关闭悬浮窗、退出息刻并锁屏，设一个两分钟后的闹钟验证。系统强行停止或清除应用数据会取消闹钟。</string>
+    <string name="background_help">请在系统设置中为息刻开启：\n\n1. 应用与权限 → 权限管理 → 自启动。\n2. 电池 → 后台耗电管理（或后台高耗电）→ 允许后台运行。\n\n菜单名称会随 OriginOS 版本变化，可搜索“自启动”和“后台耗电”。这些厂商开关无法由应用准确检测，所以这里不会显示“已授权”。\n\n重启手机后，请先打开一次息刻，确认闹钟已开启，再开启悬浮窗。设置一个两分钟后的闹钟并锁屏试响；若响铃页面未弹出，可点通知栏中的闹钟通知打开。系统强行停止或清除应用数据会取消闹钟。</string>
+    <string name="card_usage">闹钟使用说明</string>
+    <string name="usage_summary">重启后请先打开一次 App，再开启悬浮窗。允许悬浮窗后，响铃时会显示可停止的提醒卡；未显示时可点闹钟通知打开。</string>
+    <string name="usage_details">开机后恢复提醒\n部分手机（如部分 iQOO / vivo 机型）的自启动和后台限制，会导致重启后闹钟未恢复。请在重启后先打开一次息刻，确认闹钟已开启，并建议开启悬浮窗保持后台运行；每次重启后都请检查一次。\n\n响铃时如何关闭\n系统可能限制后台弹出完整响铃页面。已授予悬浮窗权限时，息刻会显示独立响铃控制卡，可直接停止；完整页面打开后，控制卡自动收起。听到铃声却未看到窗口时，请下拉通知栏，点击息刻的闹钟通知打开响铃页面，再点“停止响铃”或“稍后提醒”；通知中也提供操作（连锁闹钟和倒计时仅提供停止）。连锁闹钟不提供“稍后提醒”，停止当前响铃后，后续仍按整组设定的时间提醒。App 的闹钟分组内也可停止当前响铃。\n\n后台设置\n请允许通知、闹钟和提醒、锁屏响铃页面，并在电池设置中允许后台运行；iQOO / vivo 还需检查“自启动”和“后台耗电”设置。系统强行停止应用、清除数据或厂商后台管理仍可能影响提醒，建议设置后锁屏试响一次。</string>
+    <string name="expand_all_sections">展开全部</string>
+    <string name="collapse_all_sections">收起全部</string>
+    <string name="section_expanded">已展开</string>
+    <string name="section_collapsed">已收起</string>
     <string name="app_version">版本 %1$s（%2$d）</string>
+    <string name="alarm_sound_title">闹钟铃声</string>
+    <string name="alarm_sound_system">选择系统铃声</string>
+    <string name="alarm_sound_file">选择本地音频</string>
+    <string name="alarm_sound_default">跟随系统闹钟铃声</string>
+    <string name="alarm_sound_custom">自选铃声</string>
+    <string name="alarm_sound_current">闹钟铃声：%1$s</string>
+    <string name="alarm_sound_hint">对所有闹钟生效，下次响铃使用新铃声。自选音频无法读取时自动使用系统或内置铃声；音量仍由系统闹钟音量控制。</string>
+    <string name="alarm_sound_permission_failed">未能保留音频读取权限，铃声未更换。请从其他文件来源重新选择。</string>
+    <string name="alarm_sound_picker_missing">系统未提供此选择器，请换一种方式选择铃声。</string>
+    <string name="cd_from_alarm">从已有闹钟设为倒计时</string>
+    <string name="cd_no_alarms">暂无已开启的闹钟，请先添加或开启闹钟。</string>
+    <string name="cd_ring_enabled">倒计时结束时响铃</string>
+    <string name="cd_ring_hint">默认关闭，开启后使用所选闹钟铃声。从已有闹钟设定的倒计时由原闹钟响铃，不重复播放。通知中的悬浮窗开关只控制显示，计时继续；退出后台服务后，已开启的结束铃声仍由系统调度。</string>
+    <string name="open_ring_page">打开完整响铃页面</string>
 </resources>

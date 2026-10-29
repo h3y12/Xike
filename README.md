@@ -7,7 +7,7 @@ Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、
 | 平台 | 源码与说明 | 版本 |
 |---|---|---|
 | Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.3 |
-| Android / Kotlin | [android](android/README.md) | 1.2.13 |
+| Android / Kotlin | [android](android/README.md) | 1.2.20 |
 
 两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/Xike/releases) 分发。
 
@@ -15,7 +15,7 @@ Windows 使用 .NET 8 SDK，在 `desktop/` 执行 `dotnet build -c Release`；�
 
 ## 界面预览
 
-下图来自程序原生界面：Windows 使用隔离配置与固定示例时刻，Android 使用全新的 Android 15 模拟器和演示数据。
+下图来自程序原生界面：Windows 使用隔离配置与固定示例时刻，Android 使用全新的 Android 15 模拟器和演示数据。截图采集于早期版本，当前安卓版已增加分组折叠及独立响铃控制卡。
 
 <table>
 <tr><th>Windows 挂件</th><th>Android 首页</th><th>Android 悬浮窗</th></tr>
@@ -39,6 +39,8 @@ Windows 使用 .NET 8 SDK，在 `desktop/` 执行 `dotnet build -c Release`；�
 上传前完成了源码审查和 7 项整改，包括休眠后闹钟误响 / 漏响、旧草稿覆盖实时状态、Android 12+ 穿透透明度、声音回退、配置备份恢复、构建可移植性与测试退出码。详情见 [整改记录](docs/GITHUB_FIXES.md) 与 [初次审查报告](docs/GITHUB_PREP_REVIEW.md)。
 
 双端 CI 在每次 push / pull request 时检查构建与回归。用户已反馈基础真机实测基本正常；整夜锁屏、厂商省电/重启/改时区、真实声卡和混合 DPI 多屏仍需持续验收，详见公开准备记录。
+
+本次 Android 1.2.20 更新与发布前整改见 [审查记录](docs/ANDROID_REVIEW_20261029.md)。
 
 ## 许可与贡献
 

@@ -25,6 +25,7 @@ class AlarmAudioTest {
     private val players = mutableListOf<ShadowMediaPlayer>()
 
     @Before fun setup() {
+        app.getSharedPreferences("timeguard", Context.MODE_PRIVATE).edit().clear().commit()
         shadowOf(app).grantPermissions("com.hzy.timeguard.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", "android.permission.WAKE_LOCK")
         ShadowMediaPlayer.setMediaInfoProvider { ShadowMediaPlayer.MediaInfo(2000, 0) }
         ShadowMediaPlayer.setCreateListener { _, shadow -> players += shadow }
@@ -73,4 +74,42 @@ class AlarmAudioTest {
             assertEquals(AudioManager.STREAM_ALARM, controller.get().volumeControlStream)
         } finally { controller.pause().stop().destroy() }
     }
+
+    @Test fun selectedAudioIsUsedAndStillTargetsAlarmVolume() {
+        val uri = Uri.parse("content://test/audio/chosen")
+        com.hzy.timeguard.core.AppConfig(app).alarmSoundUri = uri.toString()
+        val output = AlarmPlayback(app)
+        try {
+            output.startSound()
+            assertEquals(1, players.size)
+            assertEquals(DataSource.toDataSource(app, uri), players.single().dataSource)
+            assertAlarmChannel(players.single())
+        } finally { output.stopSound() }
+    }
+
+    @Test fun unreadableSelectionFallsBackWithoutLosingSavedChoice() {
+        val uri = Uri.parse("content://test/audio/deleted")
+        com.hzy.timeguard.core.AppConfig(app).alarmSoundUri = uri.toString()
+        ShadowMediaPlayer.addException(DataSource.toDataSource(app, uri), IOException("File removed"))
+        val output = AlarmPlayback(app)
+        try {
+            output.startSound()
+            assertEquals(2, players.size)
+            assertEquals(ShadowMediaPlayer.State.END, players.first().state)
+            assertAlarmChannel(players.last())
+            assertEquals(DataSource.toDataSource(app, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)), players.last().dataSource)
+            assertEquals(uri.toString(), com.hzy.timeguard.core.AppConfig(app).alarmSoundUri)
+        } finally { output.stopSound() }
+    }
+
+    @Test fun unsupportedUriCannotBecomeANetworkOrFileDataSource() {
+        com.hzy.timeguard.core.AppConfig(app).alarmSoundUri = "https://example.invalid/tone.mp3"
+        val output = AlarmPlayback(app)
+        try {
+            output.startSound()
+            assertEquals(1, players.size)
+            assertEquals(DataSource.toDataSource(app, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)), players.single().dataSource)
+        } finally { output.stopSound() }
+    }
+
 }

@@ -38,6 +38,8 @@ class OverlayServiceTest {
         try {
             val b = invoke("ensureOverlay") as OverlayScoreBinding
             fun params() = b.root.layoutParams as WindowManager.LayoutParams
+            assertEquals(0, params().fitInsetsTypes)
+            assertEquals(WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS, params().layoutInDisplayCutoutMode)
             assertEquals(0.8f, params().alpha, 0.001f)
             assertTrue(params().flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE != 0)
             cfg.opacity = 1f

@@ -85,6 +85,7 @@ class AlarmRinger {
     companion object {
         /** 响铃时显示的那行提示语。 */
         fun ringingText(a: Alarm): String {
+            if (a.id.startsWith("countdown:")) return "倒计时结束"
             val who = if (a.label.isBlank()) "闹钟" else a.label
             return "${who}时间到"
         }

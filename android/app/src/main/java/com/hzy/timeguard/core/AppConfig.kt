@@ -217,6 +217,24 @@ class AppConfig(context: Context) {
         get() = prefs.getInt(KEY_ALARM_SNOOZE, 5).coerceIn(1, 60)
         set(v) = prefs.edit().putInt(KEY_ALARM_SNOOZE, v.coerceIn(1, 60)).apply()
 
+    var cdRingEnabled: Boolean
+        get() = prefs.getBoolean("cdRingEnabled", false)
+        set(v) = prefs.edit().putBoolean("cdRingEnabled", v).apply()
+    var cdSourceAlarmId: String
+        get() = prefs.getString("cdSourceAlarmId", "").orEmpty()
+        set(v) = prefs.edit().putString("cdSourceAlarmId", v).apply()
+    var cdSessionId: String
+        get() = prefs.getString("cdSessionId", "").orEmpty()
+        set(v) = prefs.edit().putString("cdSessionId", v).apply()
+    var overlayVisible: Boolean
+        get() = prefs.getBoolean("overlayVisible", true)
+        set(v) = prefs.edit().putBoolean("overlayVisible", v).apply()
+
+    /** 空串跟随系统闹钟铃声；自选音频保留文档读取授权。 */
+    var alarmSoundUri: String
+        get() = prefs.getString("alarmSoundUri", "").orEmpty()
+        set(v) = prefs.edit().putString("alarmSoundUri", v).apply()
+
     /** 响铃时是否震动。 */
     var alarmVibrate: Boolean
         get() = prefs.getBoolean(KEY_ALARM_VIBRATE, true)
