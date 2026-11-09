@@ -8,12 +8,12 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 界面快照：把各个阶段的窗口离屏渲染成一张对照图，便于核对显示效果。
 /// 卡片的高度按内容自然量出来（分数块收起后窗口会变矮），所以图上看到的就是真实比例。
-/// 用法：TimeGuard.exe --snapshot [输出图片路径]
+/// 用法：Xike.exe --snapshot [输出图片路径]
 /// </summary>
 public static class Snapshot
 {

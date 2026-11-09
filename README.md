@@ -6,8 +6,8 @@ Windows 桌面挂件与 Android 悬浮窗：早睡健康分、手动倒计时、
 
 | 平台 | 源码与说明 | 版本 |
 |---|---|---|
-| Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.3 |
-| Android / Kotlin | [android](android/README.md) | 1.2.20 |
+| Windows / WPF / .NET 8 | [desktop](desktop/README.md) | 2.0.5 |
+| Android / Kotlin | [android](android/README.md) | 1.3.0 |
 
 两个平台独立构建和发布，计分与闹钟规则通过各自测试保持一致。源码、测试和资源在本仓库，EXE 与 APK 通过 [GitHub Releases](https://github.com/h3y12/Xike/releases) 分发。
 
@@ -40,7 +40,7 @@ Windows 使用 .NET 8 SDK，在 `desktop/` 执行 `dotnet build -c Release`；�
 
 双端 CI 在每次 push / pull request 时检查构建与回归。用户已反馈基础真机实测基本正常；整夜锁屏、厂商省电/重启/改时区、真实声卡和混合 DPI 多屏仍需持续验收，详见公开准备记录。
 
-本次 Android 1.2.20 更新与发布前整改见 [审查记录](docs/ANDROID_REVIEW_20261029.md)。
+Android 1.3.0 与 Windows 2.0.5 的更名、覆盖升级和验证见 [名称清理记录](docs/NAME_CLEANUP_20261103.md)。Android 1.2.20 的改动见 [上一版审查记录](docs/ANDROID_REVIEW_20261029.md)。
 
 ## 许可与贡献
 

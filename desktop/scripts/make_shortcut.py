@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""给 TimeGuard.exe 建一个桌面快捷方式（直接拼 .lnk 二进制，不使用 COM）。
+"""给 Xike.exe 建一个桌面快捷方式（直接拼 .lnk 二进制，不使用 COM）。
 
 为什么不走 WScript.Shell：本机策略禁止实例化 COM 对象（"COM object instantiation
 can run arbitrary code"），Windows Script Host / PowerShell 那条路走不通。
@@ -193,7 +193,7 @@ def main():
         return 2
 
     target = os.path.abspath(positional[0])
-    name = positional[1] if len(positional) > 1 else "TimeGuard"
+    name = positional[1] if len(positional) > 1 else "Xike"
     if not name.lower().endswith(".lnk"):
         name += ".lnk"
 
@@ -204,7 +204,7 @@ def main():
     is_dir = os.path.isdir(target)
     # 图标：显式给了就用给的；否则用目标自身（仅对文件可行 —— 文件夹没有可取的图标）
     icon_location = (os.path.abspath(icon) + ",0") if icon else (target + ",0")
-    description = desc if desc else "TimeGuard 早睡健康分 / 倒计时挂件"
+    description = desc if desc else "Xike 早睡健康分 / 倒计时挂件"
 
     lnk_dir = desktop_dir()
     lnk_path = os.path.join(lnk_dir, name)

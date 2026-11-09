@@ -13,7 +13,7 @@
     每次都从上次成功拉起的父进程再要一次脱离。
 
 用法：
-    python run-emulator.py             # 默认 TimeGuard
+    python run-emulator.py             # 默认 Xike
     python run-emulator.py --avd 别的名字
     python run-emulator.py --status    # 只看现在活着没
 """
@@ -22,7 +22,8 @@ import subprocess
 import sys
 import time
 
-SDK = r"C:\Program Files\Android\Sdk"
+DEV_ROOT = os.environ.get("ANDROID_DEV_HOME", r"D:\AndroidDev")
+SDK = os.environ.get("ANDROID_SDK_ROOT") or os.path.join(DEV_ROOT, "sdk")
 EMU = os.path.join(SDK, "emulator", "emulator.exe")
 
 DETACHED_PROCESS = 0x00000008
@@ -34,7 +35,8 @@ def build_env():
     env = dict(os.environ)
     env["ANDROID_HOME"] = SDK
     env["ANDROID_SDK_ROOT"] = SDK
-    env["ANDROID_AVD_HOME"] = os.path.join(env.get("USERPROFILE", ""), ".android", "avd")
+    env.setdefault("ANDROID_AVD_HOME", os.path.join(DEV_ROOT, "profiles", "xike", "avd"))
+    env.setdefault("ANDROID_USER_HOME", os.path.join(DEV_ROOT, "profiles", "xike", "android-user"))
     return env
 
 
@@ -65,7 +67,7 @@ def launch(avd, extra_flags=()):
 
 
 def main(argv):
-    avd = "TimeGuard"
+    avd = "xike-public-api35"
     extra = []
     if "--avd" in argv:
         avd = argv[argv.index("--avd") + 1]

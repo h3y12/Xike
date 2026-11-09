@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>连锁起床闹钟的生成参数。起始时间 + 间隔 + 次数 → 一串闹钟。</summary>
 public sealed class AlarmChainSpec

@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 public enum CountdownMode
 {

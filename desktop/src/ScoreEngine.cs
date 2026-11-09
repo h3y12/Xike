@@ -1,6 +1,6 @@
 using System;
 
-namespace TimeGuard;
+namespace Xike;
 
 public enum NightPhase
 {

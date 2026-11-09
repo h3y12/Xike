@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 窗口摆放的纯计算部分。

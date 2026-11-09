@@ -41,7 +41,7 @@ VK = {
 
 
 def find_window(title="息刻"):
-    """找可见的 TimeGuard 主窗口；跳过 GDI+ 那种 1x1 隐藏辅助窗口。"""
+    """找可见的 Xike 主窗口；跳过 GDI+ 那种 1x1 隐藏辅助窗口。"""
     found = []
 
     @ctypes.WINFUNCTYPE(ctypes.c_bool, wt.HWND, wt.LPARAM)
@@ -107,7 +107,7 @@ def main():
             break
         time.sleep(0.25)
     if win is None:
-        say("FAIL  找不到可见的 TimeGuard 窗口")
+        say("FAIL  找不到可见的 Xike 窗口")
         return 1
     hwnd, rect = win
 

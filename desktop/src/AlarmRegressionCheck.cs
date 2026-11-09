@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 internal static class AlarmRegressionCheck
 {

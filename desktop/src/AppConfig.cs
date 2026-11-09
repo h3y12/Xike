@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 闹钟在 config.json 里的存法。单独一个类型是为了让 json 短且好读 ——
@@ -298,10 +298,19 @@ public sealed class AppConfig
     internal static bool ExerciseRecoveryForTest { get; set; }
 
     private static string FilePath =>
-        _overrideFile ?? Path.Combine(AppData, "TimeGuard", "config.json");
+        _overrideFile ?? Path.Combine(AppData, "Xike", "config.json");
 
-    /// <summary>改名前的旧配置（%APPDATA%\SleepGuard\config.json），首次运行自动搬过来，位置和规则不用重设。</summary>
-    private static string LegacyFilePath => Path.Combine(AppData, "SleepGuard", "config.json");
+    /// <summary>Read old settings without modifying the original files; new settings always take priority.</summary>
+    internal static AppConfig? ReadLegacyConfiguration(string appDataRoot)
+    {
+        foreach (string name in new[] { LegacyIdentity.ConfigurationDirectory, "SleepGuard" })
+        {
+            string legacy = Path.Combine(appDataRoot, name, "config.json");
+            AppConfig? config = TryRead(legacy) ?? TryRead(legacy + ".bak");
+            if (config is not null) return Sanitize(config);
+        }
+        return null;
+    }
 
     // ---- 自检钩子：只在内存里做"存盘 / 读回"，不碰磁盘 ----
 
@@ -341,10 +350,9 @@ public sealed class AppConfig
                 TryQuarantine(p);
                 return Sanitize(new AppConfig());
             }
-            else if (File.Exists(LegacyFilePath))
+            else if (_overrideFile is null)
             {
-                AppConfig? c = TryRead(LegacyFilePath);
-                if (c is not null) fromLegacy = Sanitize(c);
+                fromLegacy = ReadLegacyConfiguration(AppData);
             }
         }
         catch

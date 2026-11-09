@@ -1,8 +1,8 @@
-<Window x:Class="TimeGuard.MainWindow"
+<Window x:Class="Xike.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:TimeGuard"
-        Icon="/Assets/TimeGuard.ico"
+        xmlns:local="clr-namespace:Xike"
+        Icon="/Assets/Xike.ico"
         Title="息刻"
         Width="{x:Static local:MainWindow.CardWidth}"
         SizeToContent="Height"
@@ -143,10 +143,13 @@
                            Margin="0,4,0,0" />
 
                 <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
                     <TextBox x:Name="CdInput"
-                             Width="68"
                              Height="28"
-                             HorizontalAlignment="Left"
+                             HorizontalAlignment="Stretch"
                              FontFamily="Segoe UI, Microsoft YaHei UI"
                              FontSize="13"
                              Background="#22FFFFFF"
@@ -161,9 +164,11 @@
                              KeyDown="CdInput_KeyDown"
                              ToolTip="填 23:00 = 到那个钟点；填 45m = 45 分钟后；填 45 = 45 分钟（纯数字大于 23 按分钟算）" />
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <StackPanel Grid.Row="1" Margin="0,5,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button x:Name="CdPrimary" Style="{StaticResource MiniBtn}" Background="#385DCAA5"
                                 Content="开始" Click="CdPrimary_Click" />
+                        <Button x:Name="CdPause" Style="{StaticResource MiniBtn}" Background="#22FFFFFF"
+                                Content="暂停" Margin="5,0,0,0" Visibility="Collapsed" Click="CdPause_Click" />
                         <Button x:Name="CdReset" Style="{StaticResource MiniBtn}" Background="#22FFFFFF"
                                 Content="重置" Margin="5,0,0,0" Click="CdReset_Click" />
                     </StackPanel>

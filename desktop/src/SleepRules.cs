@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 一夜的规则参数。全部可在「设置」窗口里调整，落到 config.json。

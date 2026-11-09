@@ -1,6 +1,6 @@
 > 历史设计/整改资料：其中旧目录、旧工具链和旧状态仅供追溯。当前构建、Android 独立闹钟调度与许可请以根目录及 android/README.md 为准。
 
-# TimeGuard 开发指南
+# Xike 开发指南
 
 文中提到的桌面版 `.cs` / `.xaml` 文件均位于项目根目录下的 `src/`；构建与发布命令仍在项目根目录执行。
 
@@ -32,20 +32,20 @@ dotnet build -c Release -r win-x64
 
 # 跑起来（Debug 产物）
 dotnet run --project . -c Debug
-# 或直接双击 dist/TimeGuard.exe
+# 或直接双击 dist/Xike.exe
 
 # 单文件发布到 dist/（framework-dependent 单文件；以下为本机实测通过的参数）
-# 发布前先确认 dist\TimeGuard.exe 没在运行，否则报 MSB4018 being used by another process
+# 发布前先确认 dist\Xike.exe 没在运行，否则报 MSB4018 being used by another process
 dotnet publish -c Release -r win-x64 --self-contained false \
   -p:PublishSingleFile=true -p:DebugType=none -o dist
 ```
 
-嫌麻烦就双击根目录 `publish.cmd`：它自己查占用（在跑就提示并退出，不动文件）→ 执行上面这条 publish → 打印 `dist\TimeGuard.exe` 的时间戳。
+嫌麻烦就双击根目录 `publish.cmd`：它自己查占用（在跑就提示并退出，不动文件）→ 执行上面这条 publish → 打印 `dist\Xike.exe` 的时间戳。
 
-> 🔴 **产物目录认准 `dist\`**：桌面快捷方式的目标是 `E:\codes\TimeGuard\dist\TimeGuard.exe`。
+> 🔴 **产物目录认准 `dist\`**：桌面快捷方式的目标是 `E:\codes\Xike\dist\Xike.exe`。
 > `dotnet build`（产物在 `bin\Release`）和 publish 是两件事——只 build 不 publish，点桌面图标跑的还是旧程序。
 > 同理，**任何一次「改完验收」都要对 `dist\` 里那份 exe 跑自检**，不能只测 `bin\Release`：
-> `dist\TimeGuard.exe --selftest _verify/dist-selftest.txt`、`dist\TimeGuard.exe --snapshot _verify/dist-snapshot.png`。
+> `dist\Xike.exe --selftest _verify/dist-selftest.txt`、`dist\Xike.exe --snapshot _verify/dist-snapshot.png`。
 > 另：程序有单实例锁，旧实例在跑时点图标只会把旧窗口唤到前面（新进程瞬间退出），看起来就像"发布没生效"。先退出旧实例。
 > MSBuild 对内容没变的文件会跳过复制，所以「发布成功但时间戳没变」是正常的，看 publish 有没有报错即可。
 
@@ -64,8 +64,8 @@ python scripts/uitest.py _verify/uitest.log 45m
 图标与快捷方式：
 
 ```bash
-python scripts/make_icon.py                 # 重新生成 Assets/TimeGuard.ico
-python scripts/make_shortcut.py dist\TimeGuard.exe   # 重建桌面 TimeGuard.lnk
+python scripts/make_icon.py                 # 重新生成 Assets/Xike.ico
+python scripts/make_shortcut.py dist\Xike.exe   # 重建桌面 Xike.lnk
 ```
 
 > 发布后务必跑一次 `--selftest` 和 `--icon` 确认规则与图标正常；改了界面再跑 `--snapshot` 看对照图。
@@ -86,8 +86,8 @@ python scripts/make_shortcut.py dist\TimeGuard.exe   # 重建桌面 TimeGuard.ln
 | **加成一条面板**（第三块） | 新增 `XxxPanel` 用户控件 + 在 `MainWindow.xaml` 的 `StackPanel` 内插入（注意细线逻辑 `SetPanelVisibility`/`UpdateWindowHeight` 只认「分数 + 倒计时」两块，需扩展）；配置加对应 `Hidden`/`Pinned` 字段与 `Refresh` 判定 | 当前 `scoreShow`/`cdShow` 是硬编码两块，加块要改 `Refresh`、`SetPanelVisibility`、`UpdateWindowHeight`、`SaveConfig`、`SyncMenuChecks` 等多处，工作量不小 |
 | **改倒计时解析规则** | `Countdown.cs` 的 `TryParse`（接受写法、单位、纯数字≤23 当钟点 >23 当分钟）与 `TryParse` 调用的 `SleepRules.TryParseHm` | 解析用例在 `--selftest`（`AppendCountdownChecks`），新增写法后补一条用例 |
 | **加一条自检断言** | `SelfTest.cs` 对应 `Append*` 段（视觉 `AppendVisualChecks`、设置 `AppendSettingsChecks`、倒计时 `AppendCountdownChecks`） | 断言是 `PASS/FAIL` 文本；`Write` 末尾扫 `FAIL` 决定总结论 |
-| **重新生成图标** | `python scripts/make_icon.py`（`make_icon.py` 里的画法参数：`ARC_BOX`/`TEAL_ARC`/`BLUE_ARC`/颜色常量）；改完 `csproj` 会重新嵌入 `Assets/TimeGuard.ico`，不需手动改 csproj | 生成后立即 `python scripts/verify_exe_icon.py dist\TimeGuard.exe` 确认进 exe |
-| **重建桌面快捷方式** | `python scripts/make_shortcut.py dist\TimeGuard.exe`（参数：目标 exe [快捷方式名]） | 见下方 PITFALLS：必须带 IDList，GUID 字节序 `01 14 02 00…` |
+| **重新生成图标** | `python scripts/make_icon.py`（`make_icon.py` 里的画法参数：`ARC_BOX`/`TEAL_ARC`/`BLUE_ARC`/颜色常量）；改完 `csproj` 会重新嵌入 `Assets/Xike.ico`，不需手动改 csproj | 生成后立即 `python scripts/verify_exe_icon.py dist\Xike.exe` 确认进 exe |
+| **重建桌面快捷方式** | `python scripts/make_shortcut.py dist\Xike.exe`（参数：目标 exe [快捷方式名]） | 见下方 PITFALLS：必须带 IDList，GUID 字节序 `01 14 02 00…` |
 | **改热键** | `MainWindow.xaml.cs` 的 `VK_*` 常量 + `OnSourceInitialized` 里的 `RegisterHotKey`（`HOTKEY_CLICKTHROUGH`→L、`HOTKEY_MINIMIZE`→M 失败回退 H、`HOTKEY_CD_TOGGLE`→T 失败回退 K） | 改了要在 `WndProc` 的 `WM_HOTKEY` switch 也加对应分支；托盘灰色提示文案 `_minHotkeyDesc`/`_cdHotkeyDesc` 同步 |
 | **改托盘菜单项** | `MainWindow.xaml.cs` 的 `BuildTray()` | 增删项注意 `CheckOnClick` 与 `_suppressTrayEvent` 防回环 |
 | **改鼠标穿透行为** | `ApplyClickThrough`（`WS_EX_TRANSPARENT` 开关）+ `SetClickThrough` + `UpdateBtnRow` + `AppConfig.ClickThrough` | 默认 `false` 的约束见 PITFALLS「输入框打不进字」 |
@@ -137,7 +137,7 @@ python scripts/make_shortcut.py dist\TimeGuard.exe   # 重建桌面 TimeGuard.ln
 按汉字 13px 估算是 206 而可用 200，但实际溢出多少、最右边的「分」被裁掉没，只有量一遍才算数。
 
 ```bash
-TimeGuard.exe --snapshot _verify/snapshot.png
+Xike.exe --snapshot _verify/snapshot.png
 cat _verify/snapshot.layout.txt
 ```
 

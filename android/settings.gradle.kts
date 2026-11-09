@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TimeGuardAndroid"
+rootProject.name = "XikeAndroid"
 include(":app")

@@ -3,7 +3,7 @@ using System.IO;
 using System.Media;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 响铃发声。

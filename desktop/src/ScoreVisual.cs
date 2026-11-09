@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 分数 → 界面表现：状态文案与分数颜色。

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>闹钟的重复方式。</summary>
 public enum AlarmRepeat

@@ -1,6 +1,17 @@
-﻿param([string]$Serial = 'emulator-5556', [string]$Apk = "$PSScriptRoot\..\dist\息刻-安卓版.apk")
+﻿param(
+    [Parameter(Mandatory)][ValidatePattern('^emulator-[0-9]+$')][string]$Serial,
+    [string]$Apk = "$PSScriptRoot\..\dist\Xike-debug.apk",
+    [switch]$AllowDataReset
+)
+if (-not $AllowDataReset) { throw 'This fixture clears Xike data and changes the emulator clock. Use -AllowDataReset with a disposable emulator.' }
 $ErrorActionPreference = 'Stop'
-$adb = 'C:\Program Files\Android\Sdk\platform-tools\adb.exe'
+$projectRoot = Split-Path $PSScriptRoot -Parent
+$sharedRoot = if ($env:ANDROID_DEV_HOME) { $env:ANDROID_DEV_HOME } else { 'D:\AndroidDev' }
+$adb = Join-Path $sharedRoot 'sdk/platform-tools/adb.exe'
+$buildConfig = Get-Content -LiteralPath (Join-Path $projectRoot 'app/build.gradle.kts') -Raw
+if ($buildConfig -notmatch 'applicationId\s*=\s*"([A-Za-z0-9_.]+)"') { throw 'Application ID not found.' }
+$applicationId = $Matches[1]
+$preferencesName = 'timeguard' # Persisted compatibility file; never clear a real phone.
 function Adb([string[]]$Arguments) {
     $result = & $adb -s $Serial @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw "adb failed: $Arguments $result" }
@@ -20,10 +31,10 @@ function TapId([string]$Id) {
 $null = Adb @('root')
 $null = Adb @('install','-r',(Resolve-Path -LiteralPath $Apk).Path)
 # Clear only this test installation, never a user's physical phone.
-$null = Adb @('shell','pm','clear','com.hzy.timeguard')
-$null = Adb @('shell','pm','grant','com.hzy.timeguard','android.permission.POST_NOTIFICATIONS')
-$null = Adb @('shell','appops','set','com.hzy.timeguard','SCHEDULE_EXACT_ALARM','allow')
-$null = Adb @('shell','appops','set','com.hzy.timeguard','USE_FULL_SCREEN_INTENT','allow')
+$null = Adb @('shell','pm','clear',$applicationId)
+$null = Adb @('shell','pm','grant',$applicationId,'android.permission.POST_NOTIFICATIONS')
+$null = Adb @('shell','appops','set',$applicationId,'SCHEDULE_EXACT_ALARM','allow')
+$null = Adb @('shell','appops','set',$applicationId,'USE_FULL_SCREEN_INTENT','allow')
 $null = Adb @('shell','settings','put','global','auto_time','0')
 # Emulator clock only; 07:00 UTC is the editor's default time.
 $null = Adb @('shell','cmd','alarm','set-timezone','GMT')
@@ -31,30 +42,30 @@ $day = [DateTimeOffset]::new(2026,10,9,6,50,0,[TimeSpan]::Zero).ToUnixTimeMillis
 $null = Adb @('shell','cmd','alarm','set-time',"$day")
 $null = Adb @('shell','input','keyevent','KEYCODE_WAKEUP')
 $null = Adb @('shell','wm','dismiss-keyguard')
-$null = Adb @('shell','am','start','-n','com.hzy.timeguard/.MainActivity')
+$null = Adb @('shell','am','start','-n',"$applicationId/com.hzy.xike.MainActivity")
 Start-Sleep -Seconds 2
 $null = Adb @('shell','input','swipe','360','1100','360','450','300')
-TapId 'com.hzy.timeguard:id/btnAlarmAdd'
-TapId 'com.hzy.timeguard:id/rbAlarmOnce'
+TapId "${applicationId}:id/btnAlarmAdd"
+TapId "${applicationId}:id/rbAlarmOnce"
 TapId 'android:id/button1'
 $registration = Adb @('shell','dumpsys','alarm')
-if ($registration -notmatch 'com.hzy.timeguard.alarm.FIRE') { throw 'Saved alarm was not registered' }
+if ($registration -notmatch 'com.hzy.xike.alarm.FIRE') { throw 'Saved alarm was not registered' }
 $null = Adb @('shell','input','keyevent','KEYCODE_HOME')
 $due = $day + 600000
 $null = Adb @('shell','cmd','alarm','set-time',"$($due - 20000)")
 Start-Sleep -Seconds 1
-$testPid = (Adb @('shell','pidof','com.hzy.timeguard')).Trim()
+$testPid = (Adb @('shell','pidof',$applicationId)).Trim()
 $null = Adb @('shell','kill','-9',$testPid)
 $null = Adb @('shell','input','keyevent','KEYCODE_SLEEP')
 Start-Sleep -Seconds 21
-$services = Adb @('shell','dumpsys','activity','services','com.hzy.timeguard')
+$services = Adb @('shell','dumpsys','activity','services',$applicationId)
 if ($services -notmatch 'isForeground=true foregroundId=1002') { throw 'System failed to cold-start the ringing service at scheduled time' }
 if ($services -match 'OverlayService') { throw 'Unexpected overlay dependency' }
 $activities = Adb @('shell','dumpsys','activity','activities')
 
 $notifications = Adb @('shell','dumpsys','notification','--noredact')
 $audio = Adb @('shell','dumpsys','audio')
-$pref = Adb @('shell','cat','/data/user/0/com.hzy.timeguard/shared_prefs/timeguard.xml')
+$pref = Adb @('shell','cat',"/data/user/0/$applicationId/shared_prefs/$preferencesName.xml")
 if ($pref -notmatch '<string name="alarms"\s*/>|<string name="alarms"></string>') { throw 'One-shot remained after firing' }
 $folder = Join-Path $PSScriptRoot '..\_verify'
 $services | Set-Content -LiteralPath "$folder\emulator-ring-services.txt"
@@ -62,9 +73,9 @@ $activities | Set-Content -LiteralPath "$folder\emulator-ring-activity.txt"
 $notifications | Set-Content -LiteralPath "$folder\emulator-ring-notification.txt"
 $audio | Set-Content -LiteralPath "$folder\emulator-ring-audio.txt"
 if ($activities -notmatch '(?:mResumedActivity|ResumedActivity):.*AlarmRingActivity') { throw 'No ringing controls on lock screen' }
-TapId 'com.hzy.timeguard:id/btnAlarmDismiss'
+TapId "${applicationId}:id/btnAlarmDismiss"
 Start-Sleep -Seconds 1
-$services = Adb @('shell','dumpsys','activity','services','com.hzy.timeguard')
+$services = Adb @('shell','dumpsys','activity','services',$applicationId)
 if ($services -match 'ServiceRecord.*AlarmRingService') { throw 'Lock-screen stop did not stop ringing' }
 'PASS: real UI saves one-shot; no overlay; process killed; locked; system cold-starts alarm; lock-screen controls shown; one-shot deleted; stop dismisses service.'
 # Restore network time for this emulator.

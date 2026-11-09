@@ -50,7 +50,6 @@ def export():
     colors.write_text(re.sub(r'(<color name="ic_launcher_background">)[^<]+', rf'\g<1>{BLUE}', colors.read_text(encoding='utf-8')),encoding='utf-8')
     monochrome = vector.replace(WHITE,'#FFFFFF').replace(GOLD,'#FFFFFF')
     (android/'drawable/ic_launcher_monochrome.xml').write_text(monochrome,encoding='utf-8')
-    (android/'drawable/ic_stat_timeguard.xml').write_text(monochrome,encoding='utf-8')
     (android/'drawable/ic_stat_xike.xml').write_text(monochrome,encoding='utf-8')
     background = f'''<path android:fillColor="{BLUE}" android:pathData="M24,0 H84 Q108,0 108,24 V84 Q108,108 84,108 H24 Q0,108 0,84 V24 Q0,0 24,0 Z"/>'''
     notification = vector.replace('    <path', '    ' + background + '\n    <path', 1)

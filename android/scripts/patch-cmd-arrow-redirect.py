@@ -22,7 +22,7 @@ import sys
 
 TARGETS = [
     (
-        r"E:\codes\TimeGuardAndroid\启动模拟器-在电脑上运行.cmd",
+        r"E:\codes\XikeAndroid\启动模拟器-在电脑上运行.cmd",
         # 旧（半角箭头，会被当重定向）-> 新（全角箭头）
         "echo   自动编译 -> 覆盖安装 -> 重启 App。",
         "echo   自动编译 → 覆盖安装 → 重启 App。",

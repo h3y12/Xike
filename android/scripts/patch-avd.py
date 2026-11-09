@@ -1,6 +1,6 @@
 import io, os, re
 
-p = r"C:\Users\Administrator\.android\avd\TimeGuard.avd\config.ini"
+p = r"C:\Users\Administrator\.android\avd\Xike.avd\config.ini"
 src = io.open(p, encoding="utf-8").read()
 
 # 这台机器是 i3-12100 无独显、且当前是 RDP 会话：屏幕调小能明显减轻渲染压力，

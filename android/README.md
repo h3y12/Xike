@@ -1,6 +1,6 @@
 # 息刻（Xike） · 安卓版
 
-当前版本 1.2.20（versionCode 23）。修复右上角展开/收起按钮与设置分组状态不一致的问题：使用说明独立折叠，右上角只管理设置，手动切换分组后文案立即更新。保留上版功能。本版本随 GitHub Releases 提供原签名安装包。
+当前版本 1.3.0（versionCode 24）。统一清理旧工程名、主题与构建产物名，保留原应用身份、签名、闹钟设置和通知偏好以支持覆盖升级。
 
 ## 从源码构建
 
@@ -12,9 +12,9 @@
 .\scripts\build-android.ps1 -Debug
 ```
 
-macOS / Linux 使用 `./gradlew`。正式签名从本地 `keystore.properties` 或 `TIMEGUARD_*` 环境变量读取；缺少签名信息仍可生成未签名 release 包。私钥、口令与 SDK 路径不要提交。
+macOS / Linux 使用 `./gradlew`。正式签名从本地 `keystore.properties` 或 `XIKE_*` 环境变量读取；缺少签名信息仍可生成未签名 release 包。私钥、口令与 SDK 路径不要提交。
 
-熬夜健康分悬浮窗的手机版。和电脑版 [TimeGuard](../desktop) **同一套规则、同一套口径**，
+熬夜健康分悬浮窗的手机版。和电脑版 [Xike](../desktop) **同一套规则、同一套口径**，
 三块内容也一一对应。
 
 ---
@@ -170,7 +170,7 @@ APK 是自签名的，装之前手机会拦一下，正常流程：
 
 | 顺序 | 来源 | 用途 |
 |---|---|---|
-| ① | 环境变量 `TIMEGUARD_STORE_PASSWORD` / `TIMEGUARD_KEY_PASSWORD`（另有 `TIMEGUARD_KEY_ALIAS` / `TIMEGUARD_STORE_FILE`） | CI 或别人的机器 |
+| ① | 环境变量 `XIKE_STORE_PASSWORD` / `XIKE_KEY_PASSWORD`（另有 `XIKE_KEY_ALIAS` / `XIKE_STORE_FILE`） | CI 或别人的机器 |
 | ② | 工程根目录的 `keystore.properties` | 本地构建（需自行配置，且已在 `.gitignore` 里排除） |
 
 两处都没有时**不会报错**，而是产出一个**不带签名**的 release 包，并在构建日志里打印一句提示。
@@ -179,13 +179,13 @@ APK 是自签名的，装之前手机会拦一下，正常流程：
 `keystore.properties` 形如：
 
 ```properties
-storeFile=../keystore/timeguard.jks
+storeFile=../keystore/xike.jks
 storePassword=……
-keyAlias=timeguard
+keyAlias=xike
 keyPassword=……
 ```
 
-换机器或重装系统后，把 `keystore/timeguard.jks` 和 `keystore.properties` 一起带过去就行；
+换机器或重装系统后，把 `keystore/xike.jks` 和 `keystore.properties` 一起带过去就行；
 只要密钥文件不变，签出来的包签名指纹就不变，**已装的版本依然能覆盖更新**。
 
 ---
@@ -202,7 +202,7 @@ keyPassword=……
 
 脚本使用 Gradle Wrapper 构建 debug APK，明确选择 emulator-* 设备并验证 QEMU 标志；不会自动清空数据或修改系统时间，也不会把 APK 安装到真实手机。若已安装正式签名版，建议另用一个模拟器，避免为调试卸载而丢失配置。启动脚本不自动开放应用权限，请在界面按需授权。
 
-真机调试请自行指定设备序列号：`adb -s SERIAL install -r dist/TimeGuard-debug.apk`。debug 与正式包签名不同，不能相互覆盖。正式用户使用 GitHub Releases 的原签名 APK 覆盖升级。
+真机调试请自行指定设备序列号：`adb -s SERIAL install -r dist/Xike-debug.apk`。debug 与正式包签名不同，不能相互覆盖。正式用户使用 GitHub Releases 的原签名 APK 覆盖升级。
 
 ## 怎么确认它没算错
 
@@ -259,3 +259,7 @@ keyPassword=……
 通知里的开启/关闭悬浮窗只影响显示，后台计时继续；需要完全停止显示服务时选择“退出后台服务”，已注册的倒计时结束铃声和独立闹钟仍保留。App 首页的悬浮窗按钮也切换显示。
 
 响铃时，已授予悬浮窗权限的手机会显示独立控制卡；完整响铃页可见时控制卡隐藏，退出完整页且仍在响铃时重新显示。卡片不受健康分悬浮窗开关或点击穿透影响。没有悬浮窗权限、锁屏或厂商进一步限制显示时，通知入口仍可用；不能承诺所有机型都允许后台全屏弹窗。
+
+## 可选的共享构建环境
+
+设置 `ANDROID_DEV_HOME` 可复用自备的 SDK、JDK 和 Gradle 缓存。Windows 构建脚本会在该目录存在 `use-environment.ps1` 时加载它，否则使用已配置的标准 Android 构建环境。签名文件单独备份。

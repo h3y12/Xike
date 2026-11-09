@@ -31,7 +31,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path _verify/ci | Out-Null
           foreach ($mode in @('selftest', 'alarmcheck')) {
             $report = Join-Path $PWD "_verify/ci/$mode.txt"
-            $process = Start-Process -FilePath "$PWD/bin/Release/net8.0-windows/TimeGuard.exe" -ArgumentList "--$mode", $report -WindowStyle Hidden -PassThru -Wait
+            $process = Start-Process -FilePath "$PWD/bin/Release/net8.0-windows/Xike.exe" -ArgumentList "--$mode", $report -WindowStyle Hidden -PassThru -Wait
             if ($process.ExitCode -ne 0) { throw "$mode failed with exit code $($process.ExitCode)" }
             if (-not (Test-Path $report)) { throw "$mode report missing" }
             if (Select-String -LiteralPath $report -Pattern '^FAIL' -Quiet) { throw "$mode has failing assertions" }

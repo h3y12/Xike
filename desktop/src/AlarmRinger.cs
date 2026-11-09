@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>当前正在响的这次闹钟。</summary>
 public sealed class RingingState

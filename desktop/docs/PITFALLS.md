@@ -1,4 +1,4 @@
-# TimeGuard 踩坑记录
+# Xike 踩坑记录
 
 每条写法：**现象 → 根因 → 解法 → 怎么验证**。来源：代码注释 + 实测。改代码前先扫一遍，别把修过的 bug 又引回来。
 
@@ -6,10 +6,10 @@
 
 ## 1. .NET 9 apphost 在本机崩溃
 
-- **现象**：升级到 `net9.0-windows` 后，双击 `TimeGuard.exe` 直接崩，报 `CLR: Assert failure: !AreShadowStacksEnabled()`。
+- **现象**：升级到 `net9.0-windows` 后，双击 `Xike.exe` 直接崩，报 `CLR: Assert failure: !AreShadowStacksEnabled()`。
 - **根因**：.NET 9 的 apphost 在 Win10（19043）上对 shadow stack 的断言失败。
 - **解法**：`csproj` 的 `<TargetFramework>` 锁死 `net8.0-windows`，任何迁移请求都先否决 net9。
-- **怎么验证**：`dotnet --version` 看 SDK（本机 9.0.100），但构建目标仍是 net8；产物 `dist/TimeGuard.exe` 能正常双击启动、托盘出现。
+- **怎么验证**：`dotnet --version` 看 SDK（本机 9.0.100），但构建目标仍是 net8；产物 `dist/Xike.exe` 能正常双击启动、托盘出现。
 
 ---
 
@@ -17,8 +17,8 @@
 
 - **现象**：点最小化到托盘后，窗口过一会又自己冒出来。
 - **根因**：**残留的旧进程实例**（上一次没退干净，又双击了一次）。这不是代码缺陷，是「两个实例都在跑、都在定时刷新」。
-- **解法**：单实例互斥 `Mutex(@"Local\TimeGuard.SingleInstance.v1")`；第二个实例只 `Set` 一下 `Local\TimeGuard.ShowWindow.v1` 事件把已有窗口叫出来，不新建。`ListenForSecondLaunch` 后台线程等这个事件。
-- **怎么验证**：`--uicheck` 专门测这个——最小化后等 3 秒断言 `IsVisible == False`、恢复后 `IsVisible == True`，全 PASS 说明不是弹回。任务管理器确认只有一个 `TimeGuard.exe`。
+- **解法**：单实例互斥 `Mutex(@"Local\Xike.SingleInstance.v1")`；第二个实例只 `Set` 一下 `Local\Xike.ShowWindow.v1` 事件把已有窗口叫出来，不新建。`ListenForSecondLaunch` 后台线程等这个事件。
+- **怎么验证**：`--uicheck` 专门测这个——最小化后等 3 秒断言 `IsVisible == False`、恢复后 `IsVisible == True`，全 PASS 说明不是弹回。任务管理器确认只有一个 `Xike.exe`。
 
 ---
 
@@ -59,8 +59,8 @@
 
 - **现象**：跑一次 `--snapshot`，发现自己的 `config.json` 变成了「默认窗口位置 + 倒计时清空」；再跑一次 `diff` 反而「无差异」。
 - **根因**：`--snapshot` 给每张卡片 `new MainWindow()`，而窗口 `Loaded` 里 `SaveConfig()`、`OnClosed` 里 `PersistCountdown()` 都会落盘。默认配置下这次写入是**幂等**的——跑第二次把「已洗成默认」的状态又写一遍，`diff` 自然无差异，极具迷惑性。
-- **解法**：所有会建窗口或落盘的自检模式（snapshot/uicheck/uitest/icon 的兜底）统一在 `App.xaml.cs` 里先 `AppConfig.UseOverrideFile(IsolatedConfigPath(...))`，配置改写到输出文件旁的 `selftest-config.json`，绝不碰 `%APPDATA%\TimeGuard\config.json`。`--uitest clickthrough` 若不隔离，会把 `ClickThrough=true` 连同新 `ConfigVersion` 写进真实配置（见第 4 条，用户窗口永久点不动）。
-- **怎么验证**：跑 `--snapshot` 前后对比 `%APPDATA%\TimeGuard\config.json` 的 mtime/内容不变；输出目录里出现 `selftest-config.json` 即隔离生效。
+- **解法**：所有会建窗口或落盘的自检模式（snapshot/uicheck/uitest/icon 的兜底）统一在 `App.xaml.cs` 里先 `AppConfig.UseOverrideFile(IsolatedConfigPath(...))`，配置改写到输出文件旁的 `selftest-config.json`，绝不碰 `%APPDATA%\Xike\config.json`。`--uitest clickthrough` 若不隔离，会把 `ClickThrough=true` 连同新 `ConfigVersion` 写进真实配置（见第 4 条，用户窗口永久点不动）。
+- **怎么验证**：跑 `--snapshot` 前后对比 `%APPDATA%\Xike\config.json` 的 mtime/内容不变；输出目录里出现 `selftest-config.json` 即隔离生效。
 
 ---
 
@@ -69,24 +69,24 @@
 - **现象**：托盘区图标一开始有，过一阵变空白块。
 - **根因**：`new Icon(stream, …)` 引用着那个 `MemoryStream`；原代码把流当局部变量，GC 回收后图标底层数据没了，托盘图标变空白。
 - **解法**：流保存在**静态字段** `_iconStream`（`MainWindow`），生命周期跟进程一致；`_iconSource` 静态记录来源。
-- **怎么验证**：`--icon _verify/trayicon.png` 导出图标并写 `trayicon.txt`，判定 `PASS 托盘用的是自带的 TimeGuard.ico`；窗口跑久了图标仍在。
+- **怎么验证**：`--icon _verify/trayicon.png` 导出图标并写 `trayicon.txt`，判定 `PASS 托盘用的是自带的 Xike.ico`；窗口跑久了图标仍在。
 
 ---
 
 ## 8. 桌面快捷方式显示为空白块 / 双击提示「没有关联的应用」
 
-- **现象**：`TimeGuard.lnk` 图标空白，或双击报 `SE_ERR_NOASSOC(31)`（没有关联的应用）。
+- **现象**：`Xike.lnk` 图标空白，或双击报 `SE_ERR_NOASSOC(31)`（没有关联的应用）。
 - **根因**（两个坑，都在 `make_shortcut.py`）：
   1. **GUID 落盘字节序**：ShellLink CLSID 是 `{00021401-0000-0000-C000-000000000046}`，但落盘不是大端字面量——Data1/2/3 各自小端、Data4 原样，字节序列应为 `01 14 02 00 00 00 00 00 C0 00 00 00 00 00 00 46`。写成 `00 02 14 01…` 系统不认，ShellExecute 回 `SE_ERR_NOASSOW(31)`。
   2. **必须有 `LinkTargetIDList`**：只带 `LinkInfo` 时 ShellExecuteW 回 `SE_ERR_NOASSOC(31)`。IDList 内部是 BEEF0004 那套短名/长名/时间戳，手拼必错——改调 `SHParseDisplayName` 让 shell 给一份现成 PIDL 字节。
 - **解法**：`make_shortcut.py` 里 `LINK_CLSID = bytes.fromhex("01140200" "0000" "0000" "C000000000000046")`；`build_lnk` 在 `LinkFlags` 置 `HAS_LINK_TARGET_ID_LIST`，`item_id_list()` 用 `SHParseDisplayName` 取字节。桌面路径从注册表 `Shell Folders\Desktop` 读（兼容 OneDrive 接管/中文「桌面」）。
-- **怎么验证**：双击 `TimeGuard.lnk` 能正常启动；`python scripts/inspect_icon.py <exe> <lnk>` 能解析出 `ICON_LOCATION` 指向 exe；`python scripts/probe_shell_icon.py` 的 `SHGetFileInfo(lnk)` 有可见图标（非空白）。
+- **怎么验证**：双击 `Xike.lnk` 能正常启动；`python scripts/inspect_icon.py <exe> <lnk>` 能解析出 `ICON_LOCATION` 指向 exe；`python scripts/probe_shell_icon.py` 的 `SHGetFileInfo(lnk)` 有可见图标（非空白）。
 
 ---
 
 ## 9. 桌面图标显示空白块（Windows 图标缓存陈旧）
 
-- **现象**：`TimeGuard.lnk` 图标是空白方块，但 exe 和 lnk 结构都完好。
+- **现象**：`Xike.lnk` 图标是空白方块，但 exe 和 lnk 结构都完好。
 - **根因**：**Windows 图标缓存陈旧**——exe 内图标资源完好、lnk 结构正确，只是系统缓存还是旧的空图。
 - **解法**：重启 `explorer.exe` 或重建图标缓存（如 `ie4uinit.exe -show` / 删 `IconCache.db` 重启）。代码层面无需改。
 - **怎么验证**：`python scripts/probe_shell_icon.py`：`ExtractIconExW`（直读文件）有图、`SHGetFileInfoW`（走缓存）空白 = 缓存陈旧；重建缓存后两者都应有图。
@@ -106,8 +106,8 @@
 
 - **现象**：编译通过，但 exe / 快捷方式图标是默认白板。
 - **根因**：`csproj` 的 `<ApplicationIcon>` 路径写错、或 `.ico` 条目格式系统不认时，编译照样成功，图标静默缺失。
-- **解法**：csproj 同时设 `<ApplicationIcon>` 与 `<Resource Include="Assets\TimeGuard.ico" />`；重生成图标后重新发布。
-- **怎么验证**：`python scripts/verify_exe_icon.py dist\TimeGuard.exe` 抽出 16/32/48/256 尺寸 PNG，确认每组非空且可见面积正常。
+- **解法**：csproj 同时设 `<ApplicationIcon>` 与 `<Resource Include="Assets\Xike.ico" />`；重生成图标后重新发布。
+- **怎么验证**：`python scripts/verify_exe_icon.py dist\Xike.exe` 抽出 16/32/48/256 尺寸 PNG，确认每组非空且可见面积正常。
 
 ---
 
@@ -129,7 +129,7 @@
   「扣分速率」行需要 227px —— 最右边的「分」字整个落在窗口外。
   上一轮把两个数字输入框从 52 加宽到 56（+8px），正好把原本还剩 8px 露在外面的「分」彻底推出去，于是"越修越倒退"。
 - **解法**：
-  1. XAML 改成 `Width="{x:Static local:SettingsWindow.CardWidth}"`，宽度**只留一处定义**（`xmlns:local="clr-namespace:TimeGuard"`）。
+  1. XAML 改成 `Width="{x:Static local:SettingsWindow.CardWidth}"`，宽度**只留一处定义**（`xmlns:local="clr-namespace:Xike"`）。
   2. `LayoutReport()` 不再"把内容摘下来按常量摆"，而是**真开一次窗口**（`WindowStartupLocation=Manual` + `Left/Top=-6000` 挪到屏幕外，
      `Show()` 后 `Dispatcher.Invoke(..., DispatcherPriority.Loaded)` 等布局落定），用**真实 `ActualWidth`** 当判据，
      并断言 `ActualWidth == CardWidth`；顺带用 `PrintWindow(PW_RENDERFULLCONTENT)` 把真窗口抓成 `<png>.real.png`。
@@ -192,7 +192,7 @@
 
   ```python
   import shutil, os
-  for t in (r"E:\codes\TimeGuard\obj", r"E:\codes\TimeGuard\bin"):
+  for t in (r"E:\codes\Xike\obj", r"E:\codes\Xike\bin"):
       if os.path.isdir(t):
           shutil.rmtree(t, ignore_errors=True)
   ```
@@ -201,8 +201,8 @@
   清完再 `dotnet build -nodeReuse:false` 即正常。
 - **`Restore` 阶段也别让它碰网络**：日志显示它会去连 `https://api.nuget.org/v3/index.json`，
   受限网络下这一句同样会长时间挂住；产物齐备后用 `--no-restore` 跳过。
-- **副产品教训**：构建卡住时先看「上一个 `TimeGuard.exe` 是不是还在跑」——
-  它握着 `bin\…\TimeGuard.exe` 与 `.pdb`，会让复制步骤失败。
+- **副产品教训**：构建卡住时先看「上一个 `Xike.exe` 是不是还在跑」——
+  它握着 `bin\…\Xike.exe` 与 `.pdb`，会让复制步骤失败。
   项目自带的 `publish.cmd` 已内置这个检查，**改完桌面版务必走 `publish.cmd`**。
 - **判据位置**：无需改产品代码；这是环境问题，记在这里省得下次又从头查一遍。
 
@@ -370,7 +370,7 @@
 否则读到的值会被系统按"虚拟化"给你，永远看不出问题：
 
 ```
-PID=21244 标题='TimeGuard' 会话=RDP-Tcp#11
+PID=21244 标题='Xike' 会话=RDP-Tcp#11
     整窗 = 183 x 429 px   窗口DPI=144 (150%)
     183 DIP 应为 274.5 px → 现在 183 px  ✗ 漂了（差 -91 px）
 ```
@@ -424,4 +424,4 @@ WPF 却已经用新 DPI 去反算 → `183 ÷ 1.5 = 122`。而 `122 × 1.5 = 183
 
 ## 闹钟设置保存使进程退出
 
-闹钟设置通过 Show() 打开为非模态窗口，保存按钮却设置 DialogResult=true，WPF 抛出 InvalidOperationException 并终止进程。保存只设置 Result 并 Close()，由 MainWindow.Closed 回调统一落盘。用 dist/TimeGuard.exe --alarmcheck _verify/alarm-final.txt 驱动实际按钮，覆盖非模态保存、主窗口保存与重读、触发时删除一次性闹钟以及删除落盘。测试必须隔离配置并采用 OnExplicitShutdown，避免关闭第一个测试窗口使整个 WPF 测试应用退出。
+闹钟设置通过 Show() 打开为非模态窗口，保存按钮却设置 DialogResult=true，WPF 抛出 InvalidOperationException 并终止进程。保存只设置 Result 并 Close()，由 MainWindow.Closed 回调统一落盘。用 dist/Xike.exe --alarmcheck _verify/alarm-final.txt 驱动实际按钮，覆盖非模态保存、主窗口保存与重读、触发时删除一次性闹钟以及删除落盘。测试必须隔离配置并采用 OnExplicitShutdown，避免关闭第一个测试窗口使整个 WPF 测试应用退出。

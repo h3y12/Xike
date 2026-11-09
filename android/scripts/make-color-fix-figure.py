@@ -8,7 +8,7 @@
 from PIL import Image, ImageDraw, ImageFont
 
 SRC = r"E:\tmp\shots"
-OUT = r"E:\codes\TimeGuardAndroid\_verify\倒计时数字-修复前后.png"
+OUT = r"E:\codes\XikeAndroid\_verify\倒计时数字-修复前后.png"
 
 FONT = r"C:\Windows\Fonts\msyh.ttc"
 f_title = ImageFont.truetype(FONT, 24)

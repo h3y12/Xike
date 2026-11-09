@@ -9,7 +9,7 @@
 """
 import re
 
-P = r"E:\codes\TimeGuardAndroid\启动模拟器-在电脑上运行.cmd"
+P = r"E:\codes\XikeAndroid\启动模拟器-在电脑上运行.cmd"
 
 ANCHOR = "  rem -gpu swiftshader_indirect：本机是 RDP 远程会话，拿不到宿主 OpenGL，"
 EXPECT = [
@@ -23,7 +23,7 @@ NEW = [
     "  rem （emulator.exe 是 GUI 程序，用 start 起会继承调用者的控制台，",
     "  rem   控制台一关它就收到 CTRL_CLOSE 跟着退）。",
     "  rem gpu / AVD 参数都在那边，本脚本只管「是不是已经在跑」。",
-    '  start "TimeGuard 模拟器" /min "%~dp0scripts\\start-emulator.cmd" %AVD%',
+    '  start "Xike 模拟器" /min "%~dp0scripts\\start-emulator.cmd" %AVD%',
 ]
 
 text = open(P, "rb").read().decode("gbk")

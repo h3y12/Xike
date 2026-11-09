@@ -5,12 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace TimeGuard;
+namespace Xike;
 
 public partial class App : Application
 {
-    private const string MutexName = @"Local\TimeGuard.SingleInstance.v1";
-    private const string ShowEventName = @"Local\TimeGuard.ShowWindow.v1";
+    private const string MutexName = LegacyIdentity.MutexName;
+    private const string ShowEventName = LegacyIdentity.ShowEventName;
 
     private static Mutex? _singleInstance;
     private static EventWaitHandle? _showSignal;
@@ -71,11 +71,11 @@ public partial class App : Application
         // 不隔离就会把用户真实的 config.json 洗掉。以后加新模式照着做。
 
         // 图标自检：--icon [输出图片]   把托盘实际用的那张图标导出来，
-        // 确认它真的是自带的 TimeGuard.ico，而不是悄悄退回了系统默认图标
+        // 确认它真的是自带的 Xike.ico，而不是悄悄退回了系统默认图标
         if (string.Equals(mode, "--icon", StringComparison.OrdinalIgnoreCase))
         {
             // 写全名：App 自己有个 Application.MainWindow 属性会挡住这个类名
-            TimeGuard.MainWindow.DumpTrayIcon(OrDefault(outPath, "trayicon.png"));
+            Xike.MainWindow.DumpTrayIcon(OrDefault(outPath, "trayicon.png"));
             Shutdown();
             return;
         }
@@ -222,7 +222,7 @@ public partial class App : Application
             StatusLow = "自检·低分"
         }));
 
-        sb.AppendLine("8) 托盘图标来源\t" + TimeGuard.MainWindow.TrayIconSource);
+        sb.AppendLine("8) 托盘图标来源\t" + Xike.MainWindow.TrayIconSource);
 
         sb.AppendLine();
         sb.AppendLine("9) 倒计时界面链路（填输入框 → 点按钮 → 读界面大字 → 落盘 → 读回）：");
@@ -331,9 +331,9 @@ public partial class App : Application
         sb.AppendLine("12) 宽度漂移自愈（模拟 DPI 切换后宽度漂走 → 字被裁）");
         w.PerturbWidthForTest(118);
         await Task.Delay(700);
-        bool healed = Math.Abs(w.WindowWidth - TimeGuard.MainWindow.CardWidth) < 1.0;
+        bool healed = Math.Abs(w.WindowWidth - Xike.MainWindow.CardWidth) < 1.0;
         sb.AppendLine("   故意把 Width 改成 118 DIP → 700ms 后 = " + w.WindowWidth.ToString("0.##")
-            + "（应回到 " + TimeGuard.MainWindow.CardWidth.ToString("0.#") + "）"
+            + "（应回到 " + Xike.MainWindow.CardWidth.ToString("0.#") + "）"
             + "  → " + (healed ? "PASS  守护纠回来了" : "FAIL  没纠回来，150% 下会继续裁字"));
 
         // 13) 物理宽度必须 = CardWidth × 当前缩放。
@@ -344,7 +344,7 @@ public partial class App : Application
         {
             double sc = w.CurrentDpiForTest;
             int have = w.WindowPhysicalWidthForTest;
-            int want = WindowPlacement.ExpectedPhysicalWidth(TimeGuard.MainWindow.CardWidth, sc);
+            int want = WindowPlacement.ExpectedPhysicalWidth(Xike.MainWindow.CardWidth, sc);
             sb.AppendLine();
             sb.AppendLine("13) 物理宽度 = CardWidth × 当前缩放（本机 dpi=" + sc.ToString("0.###")
                 + "，即 " + (sc * 100).ToString("0") + "% 缩放）");

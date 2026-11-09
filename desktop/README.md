@@ -13,7 +13,7 @@
 ## 目录结构
 
 ```text
-TimeGuard/
+Xike/
 ├── src/                 C# 源码、WPF 界面和对应后台代码
 ├── docs/                架构、开发指南、功能与修复说明
 │   └── images/          说明文档中的配图
@@ -22,7 +22,7 @@ TimeGuard/
 ├── dist/                正式发布的程序
 ├── _verify/             本地验证报告与临时发布产物
 ├── bin/、obj/           自动生成的构建文件
-├── TimeGuard.csproj     项目配置
+├── Xike.csproj     项目配置
 ├── app.manifest         Windows 应用清单
 └── publish.cmd          发布入口
 ```
@@ -35,15 +35,15 @@ TimeGuard/
 
 ## 怎么跑起来
 
-从 GitHub Releases 下载 Windows 版 EXE 后直接运行。自行构建发布时，产物路径为：
+从 GitHub Releases 下载 Windows ZIP，解压后运行 `Xike.exe`。需要 Windows x64 和 .NET 8 桌面运行时（x64）。自行构建发布时，产物路径为：
 
 ```
-dist\TimeGuard.exe
+dist\Xike.exe
 ```
 
 首次运行会在托盘区出现图标，20:30 之后窗口自己浮现；白天（06:30–20:30）默认隐藏，只留托盘图标。
 
-> 产物 `dist/TimeGuard.exe` 是 **framework-dependent 单文件发布**（含 `hostfxr` 与内嵌 `runtimeconfig`，约 459 KB）。目标机需装 **.NET 8 桌面运行时**（Win10 19043 实测）。若双击没反应，先确认 .NET 8 Runtime 已装。
+> 产物 `dist/Xike.exe` 是 **framework-dependent 单文件发布**（含 `hostfxr` 与内嵌 `runtimeconfig`，约 459 KB）。目标机需装 **.NET 8 桌面运行时**（Win10 19043 实测）。若双击没反应，先确认 .NET 8 Runtime 已装。
 
 ---
 
@@ -55,13 +55,15 @@ dist\TimeGuard.exe
 |------|------|----------|--------------|
 | **早睡健康分**块 | 上面 | 大数字分数（如 `100`）、当前钟点、状态文案 | 能（托盘/右键菜单「收起『早睡健康分』块」，或 `ConfigScoreHidden`） |
 | 细线 | 中间 | 1px 分隔 | 跟两块一起显隐 |
-| **倒计时**块 | 下面 | `HH:MM:SS` 大字、说明小字、输入框 + 开始/重置按钮 | 能（「收起『倒计时』块」）；只在运行或暂停且有剩余时间时显示；从托盘/热键主动设置时临时展开输入区 |
+| **倒计时**块 | 下面 | `HH:MM:SS` 大字、说明小字、输入框 + 开始/暂停（继续）/重置按钮 | 能（「收起『倒计时』块」）；只在运行或暂停且有剩余时间时显示；从托盘/热键主动设置时临时展开输入区 |
 
 两块都收起时，窗口整体隐藏，但后台计时照常跑（倒计时不受影响）。
 
 **鼠标交互**：拖动窗口空白处可移动；鼠标悬停窗口右上角露出 `–`（最小化）和 `✕`（退出）两个按钮 —— 这两个按钮是**窗口级浮层**，不管收起「早睡健康分」还是「倒计时」块都还在，不会跟着某个块消失；右键弹菜单；托盘图标**单击 = 唤出窗口，双击 = 收起**（窗口已经是最小化状态时，单击把它放回来；想收起就双击）；托盘右键菜单功能最全。
 
 ---
+
+「开始」按钮和输入框内回车始终读取当前输入并重新计时，重启后也一样；时长模式的暂停与继续由独立按钮控制。
 
 ## 快捷键表
 
@@ -71,8 +73,8 @@ dist\TimeGuard.exe
 |--------|------|------|
 | **Ctrl+Alt+L** | 切换「鼠标穿透」开/关 | 始终注册，无回退。`WM_MOUSEACTIVATE` 兜底保证键盘焦点能进窗口 |
 | **Ctrl+Alt+M** | 最小化到托盘 / 从托盘恢复 | 被别的程序占用时回退到 **Ctrl+Alt+H**，托盘菜单里显示实际生效键 |
-| **Ctrl+Alt+T** | 开始 / 暂停 / 继续 / 再来 倒计时 | 被占用时回退到 **Ctrl+Alt+K** |
-| 输入框内 **Enter** | 起倒计时（空闲）/ 暂停（时长模式在跑）/ 按框内钟点重设（到点模式在跑） | 见 `CdInput_KeyDown` |
+| **Ctrl+Alt+T** | 暂停 / 继续倒计时；到点后按当前输入开始；空闲时唤起输入框 | 被占用时回退到 **Ctrl+Alt+K** |
+| 输入框内 **Enter** | 按输入框中的当前时间开始新一轮倒计时（与「开始」按钮一致） | 见 `CdInput_KeyDown` |
 | 输入框内 **Esc** | 清除键盘焦点 | |
 | 设置窗口 **Enter / Esc** | 保存 / 取消 | 见 `SettingsWindow.Win_PreviewKeyDown` |
 | 鼠标穿透开着时 **按住 Ctrl** | 临时恢复可交互（拖动、点按钮） | `ApplyClickThrough` + `BtnRow` 逻辑 |
@@ -86,10 +88,10 @@ dist\TimeGuard.exe
 路径（默认，随用户漫游）：
 
 ```
-%APPDATA%\TimeGuard\config.json
+%APPDATA%\Xike\config.json
 ```
 
-旧版本叫 `SleepGuard`，首次运行会自动从 `%APPDATA%\SleepGuard\config.json` 搬过来（`AppConfig.Load`）。**所有会建窗口或落盘的自检模式不写这个文件**——它们改用旁边的 `selftest-config.json`（见下文「自检命令」）。
+首次运行会读取旧版配置或其备份，并保存到新的 Xike 目录。**所有会建窗口或落盘的自检模式不写这个文件**——它们改用旁边的 `selftest-config.json`（见下文「自检命令」）。
 
 逐字段含义与默认值（`AppConfig.cs`，落盘后 `Sanitize` 会再把越界值拉回默认）：
 
@@ -133,11 +135,11 @@ dist\TimeGuard.exe
 
 | 命令 | 作用 | 输出/副作用 |
 |------|------|-------------|
-| `TimeGuard.exe --selftest [文件]` | 把整夜各时刻的分数导出成表，逐分钟模拟与引擎对拍 + 边界断言 + 文案配色 + 设置校验 + 倒计时校验 | 文本报告（如 `selftest.txt`）。**只读 config.json，不建窗口、不落盘** |
-| `TimeGuard.exe --snapshot [png]` | 离屏渲染整夜各阶段界面 + 设置窗口，拼一张对照图；**并实测设置窗口每一行有没有溢出**（哪个控件右边界超出可视区） | `snapshot.png` + 同名的 `snapshot.layout.txt`（逐行 `PASS/FAIL` 与余量像素）。**会 `new MainWindow()`，因此强制改用隔离配置 `selftest-config.json`**，不碰真实配置 |
-| `TimeGuard.exe --icon [png]` | 把托盘实际用的图标导出来，确认没退回系统默认 | `trayicon.png` + `trayicon.txt`（含来源判定 PASS/FAIL） |
-| `TimeGuard.exe --uicheck [文件]` | 真开窗口，验证「最小化后不会被自己弹回来」、热键注册、设置链路、倒计时链路、两块分别收起 | `uicheck.txt`。**用隔离配置**，跑完还原面板开关 |
-| `TimeGuard.exe --uitest [文件] [clickthrough]` | 开真窗口，由外部脚本（`scripts/uitest.py`）注入真实鼠标点击 + 键盘敲字，验证「点得进、打得进」 | `uitest.log`。加第三参 `clickthrough` 会强制开着穿透，用来证明这个自检真能甄别出「点不进去」。**用隔离配置** |
+| `Xike.exe --selftest [文件]` | 把整夜各时刻的分数导出成表，逐分钟模拟与引擎对拍 + 边界断言 + 文案配色 + 设置校验 + 倒计时校验 | 文本报告（如 `selftest.txt`）。**只读 config.json，不建窗口、不落盘** |
+| `Xike.exe --snapshot [png]` | 离屏渲染整夜各阶段界面 + 设置窗口，拼一张对照图；**并实测设置窗口每一行有没有溢出**（哪个控件右边界超出可视区） | `snapshot.png` + 同名的 `snapshot.layout.txt`（逐行 `PASS/FAIL` 与余量像素）。**会 `new MainWindow()`，因此强制改用隔离配置 `selftest-config.json`**，不碰真实配置 |
+| `Xike.exe --icon [png]` | 把托盘实际用的图标导出来，确认没退回系统默认 | `trayicon.png` + `trayicon.txt`（含来源判定 PASS/FAIL） |
+| `Xike.exe --uicheck [文件]` | 真开窗口，验证「最小化后不会被自己弹回来」、热键注册、设置链路、倒计时链路、两块分别收起 | `uicheck.txt`。**用隔离配置**，跑完还原面板开关 |
+| `Xike.exe --uitest [文件] [clickthrough]` | 开真窗口，由外部脚本（`scripts/uitest.py`）注入真实鼠标点击 + 键盘敲字，验证「点得进、打得进」 | `uitest.log`。加第三参 `clickthrough` 会强制开着穿透，用来证明这个自检真能甄别出「点不进去」。**用隔离配置** |
 
 > 这些模式**绝不会读写你的 `config.json`**：它们统一调 `AppConfig.UseOverrideFile(...)`，配置落在输出文件旁的 `selftest-config.json`。历史教训见 `docs/PITFALLS.md`「快照洗掉真实配置」。
 
@@ -151,7 +153,7 @@ dist\TimeGuard.exe
 
 本机装的是 .NET SDK **9.0.100**，但它能交叉构建 net8 目标（需 net8 桌面运行时/引用包已装）。项目用 `win-x64` RID（见 `obj/Release/net8.0-windows/win-x64`）。
 
-> 下面这条发布命令是**本机实际跑通、产出 `dist/TimeGuard.exe`（约 459 KB）的那一条**。
+> 下面这条发布命令是**本机实际跑通、产出 `dist/Xike.exe`（约 459 KB）的那一条**。
 
 ```bash
 # 还原依赖
@@ -165,22 +167,22 @@ dotnet publish -c Release -r win-x64 --self-contained false \
   -p:PublishSingleFile=true -p:DebugType=none -o dist
 ```
 
-> ⚠️ 发布前先确认 `dist\TimeGuard.exe` **没有正在运行**，否则报 `MSB4018 ... being used by another process`——先关掉它再发布，别反复重试。
+> ⚠️ 发布前先确认 `dist\Xike.exe` **没有正在运行**，否则报 `MSB4018 ... being used by another process`——先关掉它再发布，别反复重试。
 
-**不想记命令就双击根目录的 `publish.cmd`**：它先查有没有在跑的 `TimeGuard.exe`（有就打印一句提示直接退出，不动任何文件），没有就执行上面这条 publish，最后把 `dist\TimeGuard.exe` 的时间戳打出来。
+**不想记命令就双击根目录的 `publish.cmd`**：它先查有没有在跑的 `Xike.exe`（有就打印一句提示直接退出，不动任何文件），没有就执行上面这条 publish，最后把 `dist\Xike.exe` 的时间戳打出来。
 
-> 🔴 **桌面快捷方式指向的是 `dist\TimeGuard.exe`，不是 `bin\Release`。**
+> 🔴 **桌面快捷方式指向的是 `dist\Xike.exe`，不是 `bin\Release`。**
 > `bin\Release` 里编译通过、`--selftest` 全绿，都**不代表**用户点图标能看到新版——只要漏了 publish，点进去还是旧程序。改完代码务必跑一次发布；发布后要验证，跑的是 `dist\` 里那份 exe（见 `docs/DEVELOPING.md`）。
 > 另一个容易误判的点：程序有单实例锁，**旧实例还在跑的时候点桌面图标，新进程会立刻退出并把旧窗口唤到前面**，屏幕上看到的仍然是旧版界面。要先右键窗口/托盘图标 → 退出，再点图标。
 
-- 图标与清单由 csproj 指定：`<ApplicationIcon>Assets\TimeGuard.ico</ApplicationIcon>`、`<ApplicationManifest>app.manifest</ApplicationManifest>`，且 `Assets\TimeGuard.ico` 同时作为 `<Resource>` 嵌进程序集（托盘图标从内嵌资源读，保证和 exe 图标一致）。
+- 图标与清单由 csproj 指定：`<ApplicationIcon>Assets\Xike.ico</ApplicationIcon>`、`<ApplicationManifest>app.manifest</ApplicationManifest>`，且 `Assets\Xike.ico` 同时作为 `<Resource>` 嵌进程序集（托盘图标从内嵌资源读，保证和 exe 图标一致）。
 - 重新生成图标：`python scripts/make_icon.py`（见 `docs/DEVELOPING.md`）。
-- 重建桌面快捷方式：`python scripts/make_shortcut.py dist\TimeGuard.exe`（见 `docs/DEVELOPING.md`）。
+- 重建桌面快捷方式：`python scripts/make_shortcut.py dist\Xike.exe`（见 `docs/DEVELOPING.md`）。
 
 ---
 
 ## 源码文件一览（详见 `docs/ARCHITECTURE.md`）
 
-`App.xaml.cs`（启动/模式分发/单实例）· `AppConfig.cs`（配置+迁移）· `SleepRules.cs`（规则）· `ScoreEngine.cs`（计分纯函数）· `ScoreVisual.cs`（分数→文案/颜色）· `Countdown.cs`（倒计时状态机+解析）· `MainWindow.xaml(.cs)`（主界面）· `SettingsWindow.xaml(.cs)`（设置）· `SelfTest.cs` / `Snapshot.cs`（自检）· `app.manifest` · `TimeGuard.csproj` · `scripts/*.py`（图标/快捷方式/验证脚本）。
+`App.xaml.cs`（启动/模式分发/单实例）· `AppConfig.cs`（配置+迁移）· `SleepRules.cs`（规则）· `ScoreEngine.cs`（计分纯函数）· `ScoreVisual.cs`（分数→文案/颜色）· `Countdown.cs`（倒计时状态机+解析）· `MainWindow.xaml(.cs)`（主界面）· `SettingsWindow.xaml(.cs)`（设置）· `SelfTest.cs` / `Snapshot.cs`（自检）· `app.manifest` · `Xike.csproj` · `scripts/*.py`（图标/快捷方式/验证脚本）。
 
 闹钟修复（2.0.1）：非模态设置窗口保存不再设置 DialogResult，避免保存后崩溃；一次性闹钟在触发时立即删除并保存，选择保留时关闭；有闹钟正在响时，新到期的闹钟仍会进入队列，前一个自动停止后继续响下一个。隐藏挂件不影响程序内的闹钟；退出程序后不再响铃。

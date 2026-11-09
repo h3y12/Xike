@@ -15,7 +15,7 @@ using System.Windows.Threading;
 using Drawing = System.Drawing;
 using WinForms = System.Windows.Forms;
 
-namespace TimeGuard;
+namespace Xike;
 
 public partial class MainWindow : Window
 {
@@ -381,7 +381,7 @@ public partial class MainWindow : Window
     {
         try
         {
-            string path = Path.Combine(Path.GetTempPath(), "TimeGuard-dpi.log");
+            string path = Path.Combine(Path.GetTempPath(), "Xike-dpi.log");
             var fi = new FileInfo(path);
             if (fi.Exists && fi.Length > 64 * 1024) return;    // 别无限长
             File.AppendAllText(path,
@@ -581,7 +581,7 @@ public partial class MainWindow : Window
                 }));
             }
         })
-        { IsBackground = true, Name = "timeguard-show-signal" };
+        { IsBackground = true, Name = "xike-show-signal" };
         t.Start();
     }
 
@@ -955,24 +955,15 @@ public partial class MainWindow : Window
         SyncCdMenuItems(st.Phase);
     }
 
-    /// <summary>
-    /// 主按钮长什么样：空闲「开始」、运行「暂停」、暂停「继续」、到点「再来」。
-    /// <b>「到某个钟点」的倒计时不给暂停，按钮直接收起来</b>——摆一个按不动的按钮
-    /// 不如不摆，小字那行会写明「不可暂停」，要停就点旁边的「重置」。
-    /// </summary>
+    /// <summary>开始始终读取当前输入；暂停与继续使用独立按钮。</summary>
     private void SyncPrimaryButton(CountdownPhase phase, bool? pauseAllowed = null)
     {
         bool stoppable = pauseAllowed ?? _cd.PauseAllowed;
-        bool running = phase == CountdownPhase.Running;
-
-        CdPrimary.Visibility = running && !stoppable ? Visibility.Collapsed : Visibility.Visible;
-        CdPrimary.Content = phase switch
-        {
-            CountdownPhase.Running => "暂停",
-            CountdownPhase.Paused => "继续",
-            CountdownPhase.Finished => "再来",
-            _ => "开始"
-        };
+        CdPrimary.Visibility = Visibility.Visible;
+        CdPrimary.Content = "开始";
+        CdPause.Visibility = stoppable && (phase == CountdownPhase.Running || phase == CountdownPhase.Paused)
+            ? Visibility.Visible : Visibility.Collapsed;
+        CdPause.Content = phase == CountdownPhase.Paused ? "继续" : "暂停";
     }
 
     /// <summary>右键菜单和托盘菜单里的那一项，跟着阶段与「能不能暂停」一起变。</summary>
@@ -1053,29 +1044,26 @@ public partial class MainWindow : Window
 
     private void MenuCdReset_Click(object sender, RoutedEventArgs e) => CdResetAction();
 
-    /// <summary>主按钮：空闲→开始；运行→暂停；暂停→继续；到点→再来一次。</summary>
+    /// <summary>无论当前状态如何，都用输入框中的时间开始新一轮计时。</summary>
     internal void CdPrimaryAction()
     {
+        TryStartFromInput(DateTime.Now);
+        PersistCountdown();
+        Refresh();
+    }
+
+    private void CdPause_Click(object sender, RoutedEventArgs e) => CdPauseAction();
+
+    private void CdPauseAction()
+    {
         DateTime now = DateTime.Now;
-
-        switch (_cd.Phase)
+        if (_cd.Phase == CountdownPhase.Running)
         {
-            case CountdownPhase.Running:
-                // 到点式不接受暂停（Pause 会拒绝），此时按钮本来就是收起来的，这里再兜一道
-                if (!_cd.Pause(now)) return;
-                break;
-            case CountdownPhase.Paused:
-                _cd.Resume(now);
-                break;
-            case CountdownPhase.Finished:
-                _cd.Restart(now);
-                break;
-            default:
-                TryStartFromInput(now);
-                break;
+            if (!_cd.Pause(now)) return;
         }
-
-        if (_cd.Peek(now).HasActiveTime) _countdownEditing = false;
+        else if (_cd.Phase == CountdownPhase.Paused) _cd.Resume(now);
+        else return;
+        _countdownEditing = false;
         PersistCountdown();
         Refresh();
     }
@@ -1127,7 +1115,7 @@ public partial class MainWindow : Window
         }
         else if (_cd.Phase == CountdownPhase.Finished)
         {
-            _cd.Restart(now);
+            TryStartFromInput(now);
         }
         else
         {
@@ -1191,19 +1179,7 @@ public partial class MainWindow : Window
         if (e.Key == Key.Enter)
         {
             e.Handled = true;
-            DateTime now = DateTime.Now;
-
-            if (_cd.Phase == CountdownPhase.Running)
-            {
-                // 时长模式：回车 = 暂停。到点式不能暂停，改成「按框里的钟点重设」，
-                // 重设同一个钟点算出来的截止点还是那个钟点，回车等于没按。
-                if (_cd.PauseAllowed) _cd.Pause(now);
-                else if (!string.IsNullOrWhiteSpace(CdInput.Text)) TryStartFromInput(now);
-            }
-            else TryStartFromInput(now);
-
-            PersistCountdown();
-            Refresh();
+            CdPrimaryAction();
         }
         else if (e.Key == Key.Escape)
         {
@@ -1252,7 +1228,7 @@ public partial class MainWindow : Window
 
         DpiScale dpi = VisualTreeHelper.GetDpi(this);
         File.WriteAllText(path,
-            "TimeGuard --uitest 输入链路自检\n" +
+            "Xike --uitest 输入链路自检\n" +
             "dpi=" + dpi.DpiScaleX.ToString("0.###", CultureInfo.InvariantCulture) + "\n" +
             "clickThrough=" + (_cfg.ClickThrough ? 1 : 0) + "\n");
 
@@ -1684,7 +1660,7 @@ public partial class MainWindow : Window
     /// <summary>实际生效的倒计时快捷键说明（含自动回退的结果）。</summary>
     internal string CountdownHotkeyDescription => _cdHotkeyDesc;
 
-    /// <summary>托盘图标从哪来的（正常应是内嵌的 Assets/TimeGuard.ico）。</summary>
+    /// <summary>托盘图标从哪来的（正常应是内嵌的 Assets/Xike.ico）。</summary>
     internal static string TrayIconSource => _iconSource;
 
     /// <summary>热键注册失败时的 Win32 错误码（1409 = 已被别的程序占用）。</summary>
@@ -1887,15 +1863,15 @@ public partial class MainWindow : Window
               .Append("  填 45m → 点开始 → 大字显示 ").Append(shown)
               .Append("，小字「").Append(CdLabel.Text).Append("」");
 
-            // 2) 再点一次 → 暂停，按钮应变成「继续」
-            CdPrimaryAction();
+            // 2) 独立暂停按钮应变成「继续」，开始按钮含义不变。
+            CdPauseAction();
             bool paused = _cd.Phase == CountdownPhase.Paused;
-            sb.Append('\n').Append(paused && (string)CdPrimary.Content == "继续" ? "PASS" : "FAIL")
+            sb.Append('\n').Append(paused && (string)CdPause.Content == "继续" && (string)CdPrimary.Content == "开始" ? "PASS" : "FAIL")
               .Append("  运行中点按钮 → 状态=").Append(_cd.Phase)
-              .Append("，按钮显示「").Append(CdPrimary.Content).Append("」");
+              .Append("，暂停按钮显示「").Append(CdPause.Content).Append("」");
 
             // 3) 继续 → 重置
-            CdPrimaryAction();
+            CdPauseAction();
             bool resumed = _cd.Phase == CountdownPhase.Running;
             CdResetAction();
             sb.Append('\n').Append(resumed && _cd.Phase == CountdownPhase.Idle ? "PASS" : "FAIL")
@@ -1907,14 +1883,14 @@ public partial class MainWindow : Window
             SetInputText(clock);
             CdPrimaryAction();
             bool clockRun = _cd.Phase == CountdownPhase.Running && !_cd.PauseAllowed;
-            sb.Append('\n').Append(clockRun && CdPrimary.Visibility == Visibility.Collapsed ? "PASS" : "FAIL")
+            sb.Append('\n').Append(clockRun && CdPause.Visibility == Visibility.Collapsed && CdPrimary.Visibility == Visibility.Visible ? "PASS" : "FAIL")
               .Append("  填 ").Append(clock).Append("（到点式）→ 状态=").Append(_cd.Phase)
               .Append("，可暂停=").Append(_cd.PauseAllowed ? "是" : "否")
-              .Append("，暂停按钮=").Append(CdPrimary.Visibility == Visibility.Collapsed ? "已收起" : "还在")
+              .Append("，暂停按钮=").Append(CdPause.Visibility == Visibility.Collapsed ? "已收起" : "还在")
               .Append("，小字「").Append(CdLabel.Text).Append("」");
 
-            // 就算有漏网的入口再触发一次，也不该把到点式停住（停住就等于改了目标钟点）
-            CdPrimaryAction();
+            // 到点式不能通过独立暂停入口暂停。
+            CdPauseAction();
             sb.Append('\n').Append(_cd.Phase == CountdownPhase.Running ? "PASS" : "FAIL")
               .Append("  对到点式再触发一次 → 仍是 ").Append(_cd.Phase)
               .Append("，剩余 ").Append(Countdown.Hms(_cd.Peek(DateTime.Now).Remaining))
@@ -1937,6 +1913,60 @@ public partial class MainWindow : Window
             CountdownState ps = probe.Peek(now);
             sb.Append('\n').Append(ps.Phase == CountdownPhase.Running ? "PASS" : "FAIL")
               .Append("  落盘再读回：").Append(ps.Phase).Append("，剩余 ").Append(Countdown.Hms(ps.Remaining));
+
+            Refresh();
+            UpdateLayout();
+            Point startPosition = CdPrimary.TranslatePoint(new Point(0, 0), CdPanel);
+            Point pausePosition = CdPause.TranslatePoint(new Point(0, 0), CdPanel);
+            Point resetPosition = CdReset.TranslatePoint(new Point(0, 0), CdPanel);
+            bool fits = startPosition.X >= 0 && startPosition.X + CdPrimary.ActualWidth <= pausePosition.X
+                && pausePosition.X + CdPause.ActualWidth <= resetPosition.X
+                && resetPosition.X + CdReset.ActualWidth <= CdPanel.ActualWidth + 0.001;
+            sb.Append('\n').Append(fits ? "PASS" : "FAIL").Append("  开始、暂停、重置三个按钮实测无重叠且位于面板内")
+              .Append($"（位置/宽度：{startPosition.X:0.#}/{CdPrimary.ActualWidth:0.#}、{pausePosition.X:0.#}/{CdPause.ActualWidth:0.#}、{resetPosition.X:0.#}/{CdReset.ActualWidth:0.#}，面板宽{CdPanel.ActualWidth:0.#}）");
+
+            // 从隔离配置文件重新读取，模拟重启后的旧计时状态。
+            AppConfig savedCountdown = AppConfig.Load();
+            foreach (bool finished in new[] { false, true })
+            {
+                savedCountdown.RestoreCountdown(_cd, finished ? now.AddHours(1) : now);
+                _cd.Tick(finished ? now.AddHours(1) : now);
+                SetInputText("12m");
+                CdPrimaryAction();
+                CountdownState fresh = _cd.Peek(DateTime.Now);
+                bool current = fresh.Phase == CountdownPhase.Running
+                    && Math.Abs(fresh.Remaining.TotalSeconds - 720) < 2
+                    && _cd.InputText == "12m" && (string)CdPrimary.Content == "开始";
+                sb.Append('\n').Append(current ? "PASS" : "FAIL")
+                  .Append(finished ? "  恢复已结束的旧倒计时" : "  恢复运行中的旧倒计时")
+                  .Append(" → 输入12m → 开始：").Append(Countdown.Hms(fresh.Remaining));
+                // 先模拟这一轮已走过5分钟，再验证不改输入点击开始会重新计满。
+                Countdown.TryParse("12m", now, out CountdownPlan elapsedPlan, out _);
+                _cd.Start(elapsedPlan, DateTime.Now.AddMinutes(-5));
+                CdPrimaryAction();
+                sb.Append('\n').Append(Math.Abs(_cd.Peek(DateTime.Now).Remaining.TotalSeconds - 720) < 2 ? "PASS" : "FAIL")
+                  .Append("  未改输入再次开始 → 重新计满12分钟");
+            }
+            CdPauseAction();
+            SetInputText("8m");
+            CdPrimaryAction();
+            sb.Append('\n').Append(_cd.Phase == CountdownPhase.Running
+                && Math.Abs(_cd.Peek(DateTime.Now).Remaining.TotalSeconds - 480) < 2 ? "PASS" : "FAIL")
+              .Append("  暂停时输入8m → 开始：重新计满8分钟");
+            SetInputText(clock);
+            DateTime clockTarget = DateTime.Today + TimeSpan.Parse(clock, CultureInfo.InvariantCulture);
+            if (clockTarget <= DateTime.Now) clockTarget = clockTarget.AddDays(1);
+            CdPrimaryAction();
+            sb.Append('\n').Append(_cd.Phase == CountdownPhase.Running && !_cd.PauseAllowed
+                && Math.Abs((_cd.Peek(DateTime.Now).Remaining - (clockTarget - DateTime.Now)).TotalSeconds) < 2 ? "PASS" : "FAIL")
+              .Append("  运行时输入新钟点 → 开始：使用新钟点");
+
+            // 无效新输入不能偷偷恢复旧计划，也不能破坏当前计时。
+            var beforeInvalid = _cd.Snapshot();
+            SetInputText("abc");
+            CdPrimaryAction();
+            sb.Append('\n').Append(_cd.Snapshot() == beforeInvalid && _cdError.Length > 0 ? "PASS" : "FAIL")
+              .Append("  无效新输入 → 提示错误并保留当前计时");
 
             return sb.ToString();
         }
@@ -2187,7 +2217,7 @@ public partial class MainWindow : Window
     private static string _iconSource = "还没加载";
 
     /// <summary>
-    /// 托盘图标 = 程序图标。用的是和 exe 图标同一个 Assets/TimeGuard.ico（16–256 九个尺寸），
+    /// 托盘图标 = 程序图标。用的是和 exe 图标同一个 Assets/Xike.ico（16–256 九个尺寸），
     /// 系统按当前 DPI 自己挑合适的那张，所以托盘里、桌面快捷方式上、任务栏里是同一个图案。
     /// 早先这里是现画一张 32×32 再 Icon.FromHandle —— 一来那个 HICON 没人释放，二来
     /// 画出来的图案和 exe 图标是两回事，托盘和快捷方式对不上。
@@ -2198,16 +2228,16 @@ public partial class MainWindow : Window
         {
             var ms = new MemoryStream();
             using (Stream? res = Application.GetResourceStream(
-                       new Uri("pack://application:,,,/Assets/TimeGuard.ico"))?.Stream)
+                       new Uri("pack://application:,,,/Assets/Xike.ico"))?.Stream)
             {
-                if (res is null) throw new InvalidOperationException("内嵌资源里没有 Assets/TimeGuard.ico");
+                if (res is null) throw new InvalidOperationException("内嵌资源里没有 Assets/Xike.ico");
                 res.CopyTo(ms);
             }
 
             ms.Position = 0;
             var icon = new Drawing.Icon(ms, WinForms.SystemInformation.SmallIconSize);
             _iconStream = ms;
-            _iconSource = "内嵌 Assets/TimeGuard.ico（" + icon.Width + "×" + icon.Height + "）";
+            _iconSource = "内嵌 Assets/Xike.ico（" + icon.Width + "×" + icon.Height + "）";
             return icon;
         }
         catch (Exception ex)
@@ -2237,7 +2267,7 @@ public partial class MainWindow : Window
             "图标来源\t" + _iconSource + Environment.NewLine +
             "托盘尺寸\t" + icon.Width + "×" + icon.Height + "（系统当前 DPI 下托盘图标的实际尺寸）" + Environment.NewLine +
             "导出图片\t" + pngPath + "（" + bmp.Width + "×" + bmp.Height + "）" + Environment.NewLine +
-            "判定\t" + (ok ? "PASS  托盘用的是自带的 TimeGuard.ico" : "FAIL  没读到自带图标");
+            "判定\t" + (ok ? "PASS  托盘用的是自带的 Xike.ico" : "FAIL  没读到自带图标");
 
         File.WriteAllText(Path.ChangeExtension(pngPath, ".txt"), info, new UTF8Encoding(true));
         return info;

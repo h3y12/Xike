@@ -16,7 +16,7 @@ Windows 图片直接渲染实际 WPF 控件；Android 图片通过 adb 采集实
 
 [完整阶段快照](images/desktop-overview.png) · [规则设置](images/desktop-settings.png)
 
-在 Windows 构建后运行 `TimeGuard.exe --snapshot <输出目录>/desktop-overview.png`，可生成概览和各个独立窗口快照。该模式使用隔离配置，不读取个人闹钟。
+在 Windows 构建后运行 `Xike.exe --snapshot <输出目录>/desktop-overview.png`，可生成概览和各个独立窗口快照。该模式使用隔离配置，不读取个人闹钟。
 
 ## Android
 

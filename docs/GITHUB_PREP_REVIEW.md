@@ -4,7 +4,7 @@
 
 > 2026-10-12 整改更新：本报告下面的 7 项发现已实施修复；初次审查内容作为历史证据保留。当前整改与验证结果见 [整改记录](GITHUB_FIXES.md)。不能把下面的“建议修复”解读为当前尚未修改。
 
-> 仓库现名：`h3y12/Xike`（息刻）。文中 TimeGuard 是初次审查时的目录与内部工程名称。
+> 仓库现名：`h3y12/Xike`（息刻）。文中示例路径与工程名称已按当前名称统一，审查日期与发现记录保留原意。
 
 范围：当前 Windows 桌面版和 Android 版源码、构建入口、配置存储、闹钟与悬浮窗关键路径，以及首次上传应排除的文件。本轮是代码与发布准备审查，不是完整渗透测试，也没有完成真机、整夜锁屏和混合 DPI 多屏验收。现有 `代码审查整改说明.md` 是历史整改记录，本报告按当前实现重新核对。
 
@@ -15,19 +15,19 @@
 建议结构：
 
 ```text
-TimeGuard/
+Xike/
 ├── README.md                 产品介绍、两个平台的入口和下载链接
 ├── LICENSE                   作者选定的许可证
 ├── .gitignore
 ├── .gitattributes
 ├── .github/workflows/        两个平台的独立构建和检查
-├── desktop/                  现有 TimeGuard 项目内容
-│   ├── TimeGuard.csproj
+├── desktop/                  现有 Xike 项目内容
+│   ├── Xike.csproj
 │   ├── src/
 │   ├── Assets/
 │   ├── scripts/
 │   └── docs/
-└── android/                  现有 TimeGuardAndroid 项目内容
+└── android/                  现有 XikeAndroid 项目内容
     ├── app/
     ├── gradle/wrapper/
     ├── gradlew

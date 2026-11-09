@@ -6,12 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 规则自检：每一节都做两件事——① 逐分钟模拟与计分引擎对拍（两边独立实现）；
 /// ② 关键边界时刻逐条断言。另附文案与配色的断言。
-/// 用法：TimeGuard.exe --selftest [输出文件路径]
+/// 用法：Xike.exe --selftest [输出文件路径]
 /// </summary>
 public static class SelfTest
 {
@@ -20,7 +20,7 @@ public static class SelfTest
     public static bool Write(string path)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("# TimeGuard 规则自检");
+        sb.AppendLine("# Xike 规则自检");
         sb.AppendLine("# 每节先「逐分钟模拟对拍」（模拟与引擎两边各写一套，互不参考），再逐条断言关键边界。");
         sb.AppendLine();
 
@@ -632,7 +632,7 @@ public static class SelfTest
         sb.AppendLine("验的是「写盘失败 / 文件被写坏」时用户配置还在不在。");
         sb.AppendLine();
 
-        string dir = Path.Combine(Path.GetTempPath(), "TimeGuard-selftest-cfg");
+        string dir = Path.Combine(Path.GetTempPath(), "Xike-selftest-cfg");
         string file = Path.Combine(dir, "config.json");
 
         // 记住进来时的隔离文件，检查完要还回去——后面 RestorePosition 等还在用它
@@ -653,6 +653,25 @@ public static class SelfTest
 
         try
         {
+            string legacyDirectory = Path.Combine(dir, LegacyIdentity.ConfigurationDirectory);
+            Directory.CreateDirectory(legacyDirectory);
+            string legacyFile = Path.Combine(legacyDirectory, "config.json");
+            var legacyConfig = new AppConfig { Left = 456, AlarmRingSeconds = 42, CdInput = "12m" };
+            legacyConfig.Alarms.Add(new AlarmRecord { Id = "rename-check", At = "07:30" });
+            string legacyJson = AppConfig.ToJsonForTest(legacyConfig);
+            File.WriteAllText(legacyFile, legacyJson);
+            AppConfig? migrated = AppConfig.ReadLegacyConfiguration(dir);
+            sb.AppendLine(Mark(migrated is not null && migrated.Left == 456
+                && migrated.AlarmRingSeconds == 42 && migrated.CdInput == "12m"
+                && migrated.Alarms.Count == 1 && migrated.Alarms[0].Id == "rename-check",
+                "更名后读取旧配置，保留倒计时、闹钟和位置", "使用隔离的旧目录"));
+            sb.AppendLine(Mark(File.ReadAllText(legacyFile) == legacyJson,
+                "更名迁移不修改旧配置原件", "原件内容一致"));
+            File.WriteAllText(legacyFile + ".bak", legacyJson);
+            File.WriteAllText(legacyFile, "corrupt");
+            sb.AppendLine(Mark(AppConfig.ReadLegacyConfiguration(dir)?.Left == 456,
+                "旧配置损坏时读取旧备份", "不丢弃有效旧备份"));
+
             // ① 首写：目录不存在也要能建出来
             var first = new AppConfig { Left = 100, Top = 200, Opacity = 0.75 };
             first.Save();

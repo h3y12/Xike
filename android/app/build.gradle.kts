@@ -11,13 +11,13 @@ plugins {
 /**
  * 发布签名信息**不进版本库**。
  *
- * 为什么：私钥（keystore/timeguard.jks）和它的口令要是都躺在工程目录里，任何拿到
+ * 为什么：私钥（keystore/xike.jks）和它的口令要是都躺在工程目录里，任何拿到
  * 这份源码的人都能给这个 App 签出一个「官方更新包」——安卓只认签名，认不出人。
  * 之前的口令是明文写在 build.gradle.kts 里的，属于典型的「把钥匙和锁挂一起」。
  *
  * 取值顺序（先到先用）：
- *   ① 环境变量 TIMEGUARD_STORE_PASSWORD / TIMEGUARD_KEY_PASSWORD
- *      （也可用 TIMEGUARD_KEY_ALIAS / TIMEGUARD_STORE_FILE 覆盖路径和别名）
+ *   ① 环境变量 XIKE_STORE_PASSWORD / XIKE_KEY_PASSWORD
+ *      （也可用 XIKE_KEY_ALIAS / XIKE_STORE_FILE 覆盖路径和别名）
  *   ② 工程根目录的 keystore.properties（已在 .gitignore 里排除）
  *
  * 两者都没有时**不报错**：退化成不签名的 release 包，并在构建时打印一句提示。
@@ -32,23 +32,24 @@ fun secret(envName: String, propName: String): String? =
     System.getenv(envName)?.takeIf { it.isNotBlank() }
         ?: keystoreProps.getProperty(propName)?.takeIf { it.isNotBlank() }
 
-val storeFilePath = secret("TIMEGUARD_STORE_FILE", "storeFile") ?: "../keystore/timeguard.jks"
-val storePass = secret("TIMEGUARD_STORE_PASSWORD", "storePassword")
-val keyAliasValue = secret("TIMEGUARD_KEY_ALIAS", "keyAlias") ?: "timeguard"
-val keyPass = secret("TIMEGUARD_KEY_PASSWORD", "keyPassword")
+val storeFilePath = secret("XIKE_STORE_FILE", "storeFile") ?: "../keystore/xike.jks"
+val storePass = secret("XIKE_STORE_PASSWORD", "storePassword")
+val keyAliasValue = secret("XIKE_KEY_ALIAS", "keyAlias") ?: "xike"
+val keyPass = secret("XIKE_KEY_PASSWORD", "keyPassword")
 
 val hasSigning = storePass != null && keyPass != null
 
 android {
-    namespace = "com.hzy.timeguard"
+    namespace = "com.hzy.xike"
     compileSdk = 35
 
     defaultConfig {
+        // Published installation identity: changing this creates a separate application.
         applicationId = "com.hzy.timeguard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 23
-        versionName = "1.2.20"
+        versionCode = 24
+        versionName = "1.3.0"
     }
 
     signingConfigs {
@@ -123,7 +124,7 @@ if (!hasSigning) {
     logger.lifecycle(
         "⚠ 未找到发布签名口令：release 包将不带签名。" +
             "请在 $keystorePropsFile 里写 storePassword / keyPassword，" +
-            "或设置环境变量 TIMEGUARD_STORE_PASSWORD / TIMEGUARD_KEY_PASSWORD。"
+            "或设置环境变量 XIKE_STORE_PASSWORD / XIKE_KEY_PASSWORD。"
     )
 }
 

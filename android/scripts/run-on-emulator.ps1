@@ -1,9 +1,13 @@
-param(
+﻿param(
     [ValidatePattern('^[A-Za-z0-9_.-]+$')][string]$Avd,
     [ValidatePattern('^emulator-[0-9]+$')][string]$Serial
 )
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
+$sharedRoot = if ($env:ANDROID_DEV_HOME) { $env:ANDROID_DEV_HOME } else { 'D:\AndroidDev' }
+$sharedEnvironment = Join-Path $sharedRoot 'use-environment.ps1'
+if (Test-Path -LiteralPath $sharedEnvironment) { . $sharedEnvironment -Profile 'xike' }
+if (-not $Avd -and $env:ANDROID_AVD_HOME -and (Test-Path -LiteralPath (Join-Path $env:ANDROID_AVD_HOME 'xike-public-api35.ini'))) { $Avd = 'xike-public-api35' }
 $sdk = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { $env:ANDROID_SDK_ROOT }
 if (-not $sdk) { throw 'Set ANDROID_HOME to your Android SDK directory first.' }
 $adb = Join-Path $sdk 'platform-tools/adb.exe'
@@ -42,9 +46,12 @@ for ($i = 0; $i -lt 120; $i++) {
     Start-Sleep -Seconds 2
 }
 & (Join-Path $PSScriptRoot 'build-android.ps1') -Debug
-$apk = Join-Path $projectRoot 'dist/TimeGuard-debug.apk'
+$apk = Join-Path $projectRoot 'dist/Xike-debug.apk'
 & $adb -s $Serial install -r $apk
 if ($LASTEXITCODE -ne 0) { throw 'APK installation failed. An existing release-signed app needs a separate emulator or manual removal.' }
-& $adb -s $Serial shell am start -n com.hzy.timeguard/.MainActivity
+$metadata = Get-Content -LiteralPath (Join-Path $projectRoot 'app/build/outputs/apk/debug/output-metadata.json') -Raw | ConvertFrom-Json
+$applicationId = [string]$metadata.applicationId
+if ($applicationId -notmatch '^[A-Za-z0-9_.]+$') { throw 'Invalid application ID in build metadata.' }
+& $adb -s $Serial shell am start -n "$applicationId/com.hzy.xike.MainActivity"
 if ($LASTEXITCODE -ne 0) { throw 'Application launch failed.' }
 Write-Output 'Xike is running on the selected emulator. Grant application permissions in Settings as needed.'

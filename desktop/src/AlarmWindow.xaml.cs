@@ -8,7 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 闹钟设置窗。两个页签：普通闹钟 / 起床闹钟（连锁）。

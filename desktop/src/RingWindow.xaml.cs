@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>
 /// 闹钟响铃时的弹窗。独立于挂件：挂件可能被收起、最小化到托盘、或者被别的窗口盖住，

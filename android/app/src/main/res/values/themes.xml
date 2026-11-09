@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.TimeGuard" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.Xike" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- White settings cards require light widgets and dialogs in every system mode. -->
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
         <item name="android:textColorPrimary">@color/text_primary</item>

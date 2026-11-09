@@ -11,7 +11,7 @@ using System.Windows.Threading;
 using Drawing = System.Drawing;
 using DrawingImaging = System.Drawing.Imaging;
 
-namespace TimeGuard;
+namespace Xike;
 
 /// <summary>规则设置窗。ShowDialog 后读 <see cref="Result"/>：非 null 表示用户点了保存。</summary>
 public partial class SettingsWindow : Window

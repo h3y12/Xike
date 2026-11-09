@@ -5,7 +5,7 @@ import struct
 from PIL import Image, ImageDraw
 from brand_icon import render, export
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ICO_PATH = os.path.join(ROOT, 'Assets', 'TimeGuard.ico')
+ICO_PATH = os.path.join(ROOT, 'Assets', 'Xike.ico')
 PREVIEW_PATH = os.path.join(ROOT, '_verify', 'icon-preview.png')
 SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256]
 

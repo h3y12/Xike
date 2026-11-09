@@ -1,12 +1,13 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
-$downloads = Join-Path $projectRoot '.toolchain\downloads'
-$logFile = Join-Path $projectRoot '.toolchain\install.log'
-$statusFile = Join-Path $projectRoot '.toolchain\install-status.txt'
-$sdkRoot = 'C:\Program Files\Android\Sdk'
-$gradleRoot = 'C:\Program Files\Gradle'
-$javaRoot = 'C:\Program Files\Microsoft\OpenJDK'
-$jdkHome = Join-Path $javaRoot 'jdk-21.0.12.1+1'
+$sharedRoot = if ($env:ANDROID_DEV_HOME) { $env:ANDROID_DEV_HOME } else { 'D:\AndroidDev' }
+$downloads = Join-Path $sharedRoot 'downloads\xike-import'
+$logFile = Join-Path $sharedRoot 'install.log'
+$statusFile = Join-Path $sharedRoot 'install-status.txt'
+$sdkRoot = Join-Path $sharedRoot 'sdk'
+$gradleRoot = $sharedRoot
+$javaRoot = $sharedRoot
+$jdkHome = Join-Path $javaRoot 'jdk-21'
 Start-Transcript -Path $logFile -Force
 try {
     $expectedGradle = (Get-Content (Join-Path $downloads 'gradle-8.9-bin.zip.sha256') -Raw).Trim()
@@ -25,10 +26,11 @@ try {
         Expand-Archive -LiteralPath (Join-Path $downloads 'gradle-8.9-bin.zip') -DestinationPath $gradleRoot -Force
     }
     if (-not (Test-Path "$jdkHome\bin\java.exe")) {
-        Expand-Archive -LiteralPath (Join-Path $downloads 'jdk.zip') -DestinationPath $javaRoot -Force
+        Expand-Archive -LiteralPath (Join-Path $downloads 'jdk.zip') -DestinationPath (Join-Path $sharedRoot 'staging\jdk') -Force
+        Move-Item -LiteralPath (Join-Path $sharedRoot 'staging\jdk\jdk-21.0.12.1+1') -Destination $jdkHome
     }
     if (-not (Test-Path "$sdkRoot\cmdline-tools\latest\bin\sdkmanager.bat")) {
-        $extractRoot = Join-Path $projectRoot '.toolchain\extract\android'
+        $extractRoot = Join-Path $sharedRoot 'staging\xike-import\android'
         Expand-Archive -LiteralPath (Join-Path $downloads 'commandlinetools.zip') -DestinationPath $extractRoot -Force
         New-Item -ItemType Directory -Force -Path "$sdkRoot\cmdline-tools\latest" | Out-Null
         Copy-Item -Path "$extractRoot\cmdline-tools\*" -Destination "$sdkRoot\cmdline-tools\latest" -Recurse -Force

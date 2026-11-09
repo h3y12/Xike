@@ -2,8 +2,8 @@
 """诊断图标：把「图标本身是坏的」和「Windows 图标缓存陈旧」区分开。只读，不改动任何文件。
 
 查三件事：
-  1. Assets/TimeGuard.ico 每个条目能不能解出可见像素（尺寸 / 格式 / 有效像素占比）
-  2. dist/TimeGuard.exe 里到底有没有图标资源、有几个条目、每条是 PNG 还是 DIB
+  1. Assets/Xike.ico 每个条目能不能解出可见像素（尺寸 / 格式 / 有效像素占比）
+  2. dist/Xike.exe 里到底有没有图标资源、有几个条目、每条是 PNG 还是 DIB
   3. 桌面 .lnk 的 IconLocation 指向哪里
 
 用法：
@@ -17,10 +17,10 @@ import sys
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ICO = os.path.join(ROOT, "Assets", "TimeGuard.ico")
-EXE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "dist", "TimeGuard.exe")
+ICO = os.path.join(ROOT, "Assets", "Xike.ico")
+EXE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "dist", "Xike.exe")
 LNK = sys.argv[2] if len(sys.argv) > 2 else os.path.join(
-    os.environ.get("USERPROFILE", ""), "Desktop", "TimeGuard.lnk")
+    os.environ.get("USERPROFILE", ""), "Desktop", "Xike.lnk")
 
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 

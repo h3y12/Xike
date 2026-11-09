@@ -1,4 +1,4 @@
-# TimeGuard 架构文档
+# Xike 架构文档
 
 文中提到的桌面版 `.cs` / `.xaml` 文件均位于项目根目录下的 `src/`；构建与发布命令仍在项目根目录执行。
 
@@ -10,13 +10,13 @@
 
 ### 入口与生命周期
 - **`App.xaml.cs`** —— 应用入口（`App : Application`）。`OnStartup` 按 `e.Args[0]` 分发模式：无参数走正常 GUI；`--selftest`/`--snapshot`/`--icon`/`--uicheck`/`--uitest` 各自走自检分支。**所有会 `new MainWindow()` 的自检分支都先调 `AppConfig.UseOverrideFile(...)` 隔离配置**（否则会把真实 `config.json` 洗掉，见 PITFALLS）。正常启动走单实例互斥：
-  - `MutexName = @"Local\TimeGuard.SingleInstance.v1"`（`Local\` 前缀 = 仅本会话/本用户命名空间，避免跨会话撞名）；第二个实例用 `ShowEventName = @"Local\TimeGuard.ShowWindow.v1"` 事件把已有窗口叫出来，而非再开一个。
+  - `MutexName = @"Local\Xike.SingleInstance.v1"`（`Local\` 前缀 = 仅本会话/本用户命名空间，避免跨会话撞名）；第二个实例用 `ShowEventName = @"Local\Xike.ShowWindow.v1"` 事件把已有窗口叫出来，而非再开一个。
   - `OnExit` 释放互斥体与信号。
 - **`App.xaml`** —— 仅 `<Application.Resources />`，无内容。
 
 ### 配置
 - **`AppConfig.cs`** —— 配置模型 + 加载/保存/迁移。字段逐条见 `README.md`「配置文件」。关键点：
-  - `Load()`：优先读隔离文件（自检时 `_overrideFile` 非空）；否则读 `%APPDATA%\TimeGuard\config.json`，找不到再读旧 `%APPDATA%\SleepGuard\config.json` 并搬过来；损坏则静默回落默认。
+  - `Load()`：优先读隔离文件（自检时 `_overrideFile` 非空）；否则读 `%APPDATA%\Xike\config.json`，找不到再读旧 `%APPDATA%\SleepGuard\config.json` 并搬过来；损坏则静默回落默认。
   - `Sanitize()`：**所有新/旧配置都过这一关**——`ConfigVersion` 迁移、透明度/坐标合法性、`SleepRules` 合法性与倒计时字段修复。`Save()` 写 `WriteIndented` 的 JSON，**先写 `.tmp` 再原子替换并留一份 `.bak`**（直接覆盖写会在断电/磁盘满时留下空文件或半截 JSON，把窗口位置与规则全丢掉）；`Load()` 读不出主文件时回落到 `.bak`，两个都坏才回落默认值并把坏文件改名成 `.corrupt` 留证。
   - `Rules` 属性由文本字段推导出 `SleepRules`；`CaptureCountdown`/`RestoreCountdown` 把倒计时状态与 `Countdown` 互相序列化。
   - `UseOverrideFile(string)` 是 `internal static`，仅供自检分支设隔离文件路径 `IsolatedConfigPath`（输出文件旁的 `selftest-config.json`）。
@@ -52,7 +52,7 @@
 - **`MainWindow.xaml.cs`** —— 主界面逻辑（约 1300 行，最大文件）。职责：
   - Win32 钩子：`GetWindowLong/SetWindowLong`（`WS_EX_TRANSPARENT` 控穿透）、`RegisterHotKey/UnregisterHotKey`（三套热键）、`WndProc`（`WM_MOUSEACTIVATE` 强制激活、`WM_HOTKEY` 分发）。
   - 主循环 `Refresh()`：每 200ms（`_tick`）取 `ScoreEngine.Evaluate` + `Countdown.Tick`，算 `scoreShow`/`cdShow`/`shouldShow`，决定 `Show/Hide`、面板可见性、`UpdateWindowHeight`（手写高度，不用 SizeToContent 防残影）、分数/倒计时渲染、托盘文案。**第一句是 `EnsureWindowSize()`** —— 尺寸不对的话，后面量出来的每一块高度都是错的。
-  - 托盘 `BuildTray()`：完整菜单（显示/最小化、两块显隐、唤起/开始/重置/快捷分钟、设置、鼠标穿透、透明度、热键说明）；图标 `LoadAppIcon()` 从内嵌资源读 `Assets/TimeGuard.ico`，流存静态字段 `_iconStream` 防 GC 清空。
+  - 托盘 `BuildTray()`：完整菜单（显示/最小化、两块显隐、唤起/开始/重置/快捷分钟、设置、鼠标穿透、透明度、热键说明）；图标 `LoadAppIcon()` 从内嵌资源读 `Assets/Xike.ico`，流存静态字段 `_iconStream` 防 GC 清空。
   - 收起/展开、设置窗口调用、鼠标穿透切换、输入框焦点兜底（`GotKeyboardFocus` + `WM_MOUSEACTIVATE`）。
   - **窗口摆放与分辨率适配**：`RestorePosition()` 调 `WindowPlacement.DefaultPosition/ClampToNearest` 决定初始位置
     （`ScreenWorkAreas()` 逐块屏给工作区，多屏时保证整窗落在**某一块**屏内，不会停在两屏之间的缝上）。
@@ -65,7 +65,7 @@
     走同一条 `ClampToScreen()`，订阅在 `OnClosed` 退订。
     ⚠️ **不要再用「`SizeToContent` 切 Manual → 失效测量 → 切回来」那套**（§14 的老写法）：
     它会把尺寸反算的时机暴露出来，正是 §19 那个 bug 的来源。
-  - **尺寸相关的现场记录**：`LogSize()` 在 DPI 变化/宽度漂移时往 `%TEMP%\TimeGuard-dpi.log` 追加一行
+  - **尺寸相关的现场记录**：`LogSize()` 在 DPI 变化/宽度漂移时往 `%TEMP%\Xike-dpi.log` 追加一行
     （逻辑宽、物理宽、WPF 的 DPI、期望值）。这个漂移只在"另一种缩放"上出现，本机复现不了，
     留一份现场记录省得下次从头猜。正常运行不写这个文件。
   - **自检钩子**：`SettingsRoundTripCheck`/`CountdownUiRoundTripCheck`/`StartUiTestLog`/`PrepareSnapshot`/`DumpTrayIcon` 等 `internal` 方法，供 `App.xaml.cs` 与 `SelfTest`/`Snapshot` 调用且不污染用户配置。
@@ -80,7 +80,7 @@
 
   ⚠️ **样卡的文字标注也是结论，写错就是假证据。** 2026-09-24 踩到：一张标注"生效亮字、不生效浅灰字"的卡其实只画得出 1 个闹钟——挂件的闹钟块只收「生效且半小时内会响」的，灰字根本进不来；而"黑色字生效 / 浅灰色字不生效"这个观感**只存在于 `AlarmWindow` 的列表里**。改法是给面板区补上闹钟设置窗，卡片标注改成如实描述。**每加一张卡/一个面板，先问一句「标注里说的东西，这张图真的画得出来吗」**；画不出来就换地方画，或者改标注。
 - **`app.manifest`** —— DPI 感知 `PerMonitorV2` + `dpiAware true/pm`；`<supportedOS>` 声明 Win10。WinForms 仅用于托盘，WPF 负责 DPI，故 csproj 屏蔽 `WFAC010/WFO0003`。
-- **`TimeGuard.csproj`** —— `WinExe` + `net8.0-windows` + `UseWPF` + `UseWindowsForms` + `Nullable` + `LangVersion 12`；`ApplicationIcon`/`ApplicationManifest` 指向资源；`<Resource Include="Assets\TimeGuard.ico" />` 把图标嵌进程序集。
+- **`Xike.csproj`** —— `WinExe` + `net8.0-windows` + `UseWPF` + `UseWindowsForms` + `Nullable` + `LangVersion 12`；`ApplicationIcon`/`ApplicationManifest` 指向资源；`<Resource Include="Assets\Xike.ico" />` 把图标嵌进程序集。
 - **`scripts/*.py`**（见下节「脚本」）。
 
 ---
@@ -167,11 +167,11 @@ RingWindow 显示：闹钟名 + 提示语 + 剩余秒数 + [知道了 / 稍后�
 
 7. **自检模式必须隔离配置** —— 见 `App.xaml.cs` 注释与 `IsolatedConfigPath`：`--snapshot` 会给每张卡片 `new MainWindow()`，而窗口 `Loaded` 里有 `SaveConfig()`、`OnClosed` 里有 `PersistCountdown()`，跑一次快照就会把用户真实 `config.json` 洗成「默认位置 + 倒计时清空」。而且写入是**幂等**的——跑第二次 `diff` 反而「无差异」，极具迷惑性。所有会建窗口或落盘的自检模式统一 `AppConfig.UseOverrideFile(IsolatedConfigPath(...))`。
 
-8. **托盘图标流必须存静态字段** —— `MainWindow._iconStream` 静态持有 `MemoryStream`；`LoadAppIcon` 用 `new Icon(stream, SystemInformation.SmallIconSize)` 读内嵌 `Assets/TimeGuard.ico`。若流被 GC，托盘图标变空白。`_iconSource` 静态记录来源，`--icon` 自检据此判定是否退回系统默认。
+8. **托盘图标流必须存静态字段** —— `MainWindow._iconStream` 静态持有 `MemoryStream`；`LoadAppIcon` 用 `new Icon(stream, SystemInformation.SmallIconSize)` 读内嵌 `Assets/Xike.ico`。若流被 GC，托盘图标变空白。`_iconSource` 静态记录来源，`--icon` 自检据此判定是否退回系统默认。
 
 9. **窗口高度手算，不用 SizeToContent 实时撑** —— `UpdateWindowHeight` 用 `Measure` 量 `DesiredSize` 再赋值，且 `Math.Abs(Height - h) > 0.5` 才改。理由注释：`SizeToContent=Height` 会让窗口先按中间尺寸创建再改，分层窗口留残影；倒计时小字可能换行，高度也写不死。
 
-10. **图标/清单/资源共建** —— csproj 把 `Assets\TimeGuard.ico` 既当 `<ApplicationIcon>` 又当 `<Resource>` 嵌进程序集；托盘图标从内嵌资源读，保证 exe / 托盘 / 快捷方式同一图案。清单负责 PerMonitorV2 DPI 感知。
+10. **图标/清单/资源共建** —— csproj 把 `Assets\Xike.ico` 既当 `<ApplicationIcon>` 又当 `<Resource>` 嵌进程序集；托盘图标从内嵌资源读，保证 exe / 托盘 / 快捷方式同一图案。清单负责 PerMonitorV2 DPI 感知。
 
 11. **`AlarmBook._firedAt` 必须记「时刻」，不能记「响过没有」** —— 这是闹钟功能里最容易写错、也最容易被测试漏掉的一处。写成 `HashSet<string>` + `if (_firedAt.Contains(a.Id)) continue;` 时，行为退化成「**这个闹钟响过一次就永久报废**」：一次性闹钟看不出来（本来就要删），但「每天 08:00」的闹钟**第二天再也不会响**。而只测「今天响不响」的用例全绿。现在记的是 `Dictionary<string, DateTime>`，判据是 `_firedAt[a.Id] == ringAt`——只有「同一个时刻已经报过」才跳过，新的一天算出新时刻，照常响。回归用例见 `SelfTest.AppendAlarmChecks` 里那组跨三天 + 跨周的断言。
 
@@ -210,7 +210,7 @@ RingWindow 显示：闹钟名 + 提示语 + 剩余秒数 + [知道了 / 稍后�
 
 | 脚本 | 作用 | 关键坑（详见 PITFALLS） |
 |------|------|------------------------|
-| `make_icon.py` | 按托盘画法生成 `Assets/TimeGuard.ico`（9 尺寸：16/20/24/32/40/48/64 用 BMP 条目、128/256 用 PNG 条目）+ `_verify/icon-preview.png` | 每个尺寸单独渲染后手写 ICO 容器；小尺寸必须 BMP 条目兼容性最稳 |
+| `make_icon.py` | 按托盘画法生成 `Assets/Xike.ico`（9 尺寸：16/20/24/32/40/48/64 用 BMP 条目、128/256 用 PNG 条目）+ `_verify/icon-preview.png` | 每个尺寸单独渲染后手写 ICO 容器；小尺寸必须 BMP 条目兼容性最稳 |
 | `make_shortcut.py` | 直接拼 `.lnk` 二进制写桌面快捷方式（本机禁 COM，走不了 WScript.Shell） | ① GUID 落盘不是大端字面量，`LinkCLSID` 应为 `01 14 02 00 … C0 …`；② `.lnk` 必须带 `LinkTargetIDList`，只带 `LinkInfo` 时 `ShellExecuteW` 回 `SE_ERR_NOASSOC(31)`；IDList 不手拼，调 `SHParseDisplayName` 让 shell 给 |
 | `uitest.py` | 配合 `--uitest`：真实鼠标点击 + 键盘敲键验证输入框可用 | 必须 `SetProcessDPIAwareness(2)` 在坐标 API 之前；绕过前台锁先敲 ALT 再 `SetForegroundWindow` |
 | `verify_exe_icon.py` | 从编译好的 exe 抽图标存 PNG，确认图标真写进去了 | Win32 句柄按 `void*` 声明，否则 64 位句柄被当 int 截断报 `OverflowError` |
